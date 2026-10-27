@@ -8,7 +8,7 @@ import {
   PerkProgramStatus,
   PublicationStatus,
   VerificationStatus,
-} from '@prisma/client';
+} from '@startup-radar/shared-types';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('Milestone 5 - Startup Perks & Credits MVP (E2E)', () => {

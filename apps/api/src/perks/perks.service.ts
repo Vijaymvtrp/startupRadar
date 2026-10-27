@@ -5,10 +5,12 @@ import { CreatePerkDto } from './dto/create-perk.dto';
 import { VerifyPerkDto } from './dto/verify-perk.dto';
 import {
   PerkProgramStatus,
-  Prisma,
   PublicationStatus,
-  StartupPerkProgram,
   VerificationStatus,
+} from '@startup-radar/shared-types';
+import {
+  Prisma,
+  StartupPerkProgram,
 } from '@prisma/client';
 
 @Injectable()

@@ -4,7 +4,7 @@ import {
   PerkBenefitType,
   PerkProgramStatus,
   VerificationStatus,
-} from '@prisma/client';
+} from '@startup-radar/shared-types';
 
 export class SearchPerksDto {
   @IsOptional()

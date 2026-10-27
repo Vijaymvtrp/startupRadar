@@ -10,7 +10,7 @@ import {
   VerificationStatus,
   PublicationStatus,
   DeliveryMode,
-} from '@prisma/client';
+} from '@startup-radar/shared-types';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('Milestone 4 - Startup Opportunities MVP (E2E)', () => {

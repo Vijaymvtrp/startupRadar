@@ -13,7 +13,7 @@ import {
   PerkProgramStatus,
   PublicationStatus,
   VerificationStatus,
-} from '@prisma/client';
+} from '@startup-radar/shared-types';
 
 export class PerkEligibilityCriterionInput {
   @IsString()
