@@ -779,5 +779,193 @@ DROP CONSTRAINT IF EXISTS "user_alert_notifications_userId_fkey",
 ADD CONSTRAINT "user_alert_notifications_userId_fkey"
 FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- -------------------------------------------------------------
+-- Milestone 7: Co-Founder Matching MVP
+-- -------------------------------------------------------------
+
+CREATE TYPE "CommitmentPreference" AS ENUM (
+    'FULL_TIME',
+    'PART_TIME',
+    'EXPLORING'
+);
+
+CREATE TYPE "WorkLocationPreference" AS ENUM (
+    'REMOTE',
+    'HYBRID',
+    'IN_PERSON'
+);
+
+CREATE TYPE "ConnectionRequestStatus" AS ENUM (
+    'PENDING',
+    'ACCEPTED',
+    'DECLINED',
+    'WITHDRAWN',
+    'EXPIRED'
+);
+
+CREATE TYPE "FounderProfileStatus" AS ENUM (
+    'ACTIVE',
+    'PAUSED',
+    'HIDDEN'
+);
+
+CREATE TYPE "SkillType" AS ENUM (
+    'OFFERED',
+    'SEEKING'
+);
+
+CREATE TYPE "SkillProficiency" AS ENUM (
+    'BEGINNER',
+    'INTERMEDIATE',
+    'EXPERT'
+);
+
+CREATE TABLE IF NOT EXISTS "founder_profiles" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "displayName" TEXT NOT NULL,
+    "headline" TEXT,
+    "bio" TEXT,
+    "currentRole" TEXT,
+    "desiredRole" TEXT,
+    "stage" "StartupStage" NOT NULL DEFAULT 'EXPLORING_IDEA',
+    "primarySector" "IndustrySector" NOT NULL DEFAULT 'SOFTWARE_IT',
+    "locationCity" TEXT,
+    "locationState" TEXT,
+    "countryCode" TEXT NOT NULL DEFAULT 'IN',
+    "commitment" "CommitmentPreference" NOT NULL DEFAULT 'FULL_TIME',
+    "workLocation" "WorkLocationPreference" NOT NULL DEFAULT 'HYBRID',
+    "status" "FounderProfileStatus" NOT NULL DEFAULT 'ACTIVE',
+    "contactEmail" TEXT,
+    "contactPhone" TEXT,
+    "linkedinUrl" TEXT,
+    "githubUrl" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "founder_profiles_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "founder_skills" (
+    "id" TEXT NOT NULL,
+    "profileId" TEXT NOT NULL,
+    "skillName" TEXT NOT NULL,
+    "skillType" "SkillType" NOT NULL DEFAULT 'OFFERED',
+    "proficiency" "SkillProficiency" NOT NULL DEFAULT 'INTERMEDIATE',
+
+    CONSTRAINT "founder_skills_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "founder_interests" (
+    "id" TEXT NOT NULL,
+    "profileId" TEXT NOT NULL,
+    "sector" "IndustrySector" NOT NULL,
+    "priority" INTEGER NOT NULL DEFAULT 1,
+
+    CONSTRAINT "founder_interests_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "connection_requests" (
+    "id" TEXT NOT NULL,
+    "requesterId" TEXT NOT NULL,
+    "recipientId" TEXT NOT NULL,
+    "status" "ConnectionRequestStatus" NOT NULL DEFAULT 'PENDING',
+    "introduction" TEXT,
+    "contactExchanged" BOOLEAN NOT NULL DEFAULT false,
+    "responseNote" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "respondedAt" TIMESTAMP(3),
+
+    CONSTRAINT "connection_requests_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "blocked_users" (
+    "id" TEXT NOT NULL,
+    "blockerId" TEXT NOT NULL,
+    "blockedUserId" TEXT NOT NULL,
+    "reason" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "blocked_users_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "profile_reports" (
+    "id" TEXT NOT NULL,
+    "reporterId" TEXT NOT NULL,
+    "reportedProfileId" TEXT NOT NULL,
+    "category" TEXT NOT NULL DEFAULT 'OTHER',
+    "description" TEXT NOT NULL,
+    "status" "ReviewStatus" NOT NULL DEFAULT 'PENDING',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "profile_reports_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "founder_profiles_userId_key" ON "founder_profiles"("userId");
+CREATE INDEX IF NOT EXISTS "founder_profiles_status_idx" ON "founder_profiles"("status");
+CREATE INDEX IF NOT EXISTS "founder_profiles_stage_idx" ON "founder_profiles"("stage");
+CREATE INDEX IF NOT EXISTS "founder_profiles_primarySector_idx" ON "founder_profiles"("primarySector");
+CREATE INDEX IF NOT EXISTS "founder_profiles_commitment_idx" ON "founder_profiles"("commitment");
+CREATE INDEX IF NOT EXISTS "founder_profiles_workLocation_idx" ON "founder_profiles"("workLocation");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "founder_skills_profileId_skillName_skillType_key" ON "founder_skills"("profileId", "skillName", "skillType");
+CREATE INDEX IF NOT EXISTS "founder_skills_skillName_idx" ON "founder_skills"("skillName");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "founder_interests_profileId_sector_key" ON "founder_interests"("profileId", "sector");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "connection_requests_requesterId_recipientId_key" ON "connection_requests"("requesterId", "recipientId");
+CREATE INDEX IF NOT EXISTS "connection_requests_requesterId_idx" ON "connection_requests"("requesterId");
+CREATE INDEX IF NOT EXISTS "connection_requests_recipientId_idx" ON "connection_requests"("recipientId");
+CREATE INDEX IF NOT EXISTS "connection_requests_status_idx" ON "connection_requests"("status");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "blocked_users_blockerId_blockedUserId_key" ON "blocked_users"("blockerId", "blockedUserId");
+
+CREATE INDEX IF NOT EXISTS "profile_reports_status_idx" ON "profile_reports"("status");
+
+ALTER TABLE "founder_profiles"
+DROP CONSTRAINT IF EXISTS "founder_profiles_userId_fkey",
+ADD CONSTRAINT "founder_profiles_userId_fkey"
+FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "founder_skills"
+DROP CONSTRAINT IF EXISTS "founder_skills_profileId_fkey",
+ADD CONSTRAINT "founder_skills_profileId_fkey"
+FOREIGN KEY ("profileId") REFERENCES "founder_profiles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "founder_interests"
+DROP CONSTRAINT IF EXISTS "founder_interests_profileId_fkey",
+ADD CONSTRAINT "founder_interests_profileId_fkey"
+FOREIGN KEY ("profileId") REFERENCES "founder_profiles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "connection_requests"
+DROP CONSTRAINT IF EXISTS "connection_requests_requesterId_fkey",
+ADD CONSTRAINT "connection_requests_requesterId_fkey"
+FOREIGN KEY ("requesterId") REFERENCES "founder_profiles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "connection_requests"
+DROP CONSTRAINT IF EXISTS "connection_requests_recipientId_fkey",
+ADD CONSTRAINT "connection_requests_recipientId_fkey"
+FOREIGN KEY ("recipientId") REFERENCES "founder_profiles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "blocked_users"
+DROP CONSTRAINT IF EXISTS "blocked_users_blockerId_fkey",
+ADD CONSTRAINT "blocked_users_blockerId_fkey"
+FOREIGN KEY ("blockerId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "blocked_users"
+DROP CONSTRAINT IF EXISTS "blocked_users_blockedUserId_fkey",
+ADD CONSTRAINT "blocked_users_blockedUserId_fkey"
+FOREIGN KEY ("blockedUserId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "profile_reports"
+DROP CONSTRAINT IF EXISTS "profile_reports_reporterId_fkey",
+ADD CONSTRAINT "profile_reports_reporterId_fkey"
+FOREIGN KEY ("reporterId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "profile_reports"
+DROP CONSTRAINT IF EXISTS "profile_reports_reportedProfileId_fkey",
+ADD CONSTRAINT "profile_reports_reportedProfileId_fkey"
+FOREIGN KEY ("reportedProfileId") REFERENCES "founder_profiles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
 
 

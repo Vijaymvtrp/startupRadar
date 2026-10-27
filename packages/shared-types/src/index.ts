@@ -276,6 +276,128 @@ export enum ConnectionRequestStatus {
   EXPIRED = 'EXPIRED',
 }
 
+export enum FounderProfileStatus {
+  ACTIVE = 'ACTIVE',
+  PAUSED = 'PAUSED',
+  HIDDEN = 'HIDDEN',
+}
+
+export enum SkillType {
+  OFFERED = 'OFFERED',
+  SEEKING = 'SEEKING',
+}
+
+export enum SkillProficiency {
+  BEGINNER = 'BEGINNER',
+  INTERMEDIATE = 'INTERMEDIATE',
+  EXPERT = 'EXPERT',
+}
+
+export interface FounderSkillDto {
+  id?: string;
+  skillName: string;
+  skillType: SkillType;
+  proficiency: SkillProficiency;
+}
+
+export interface FounderInterestDto {
+  id?: string;
+  sector: IndustrySector;
+  priority?: number;
+}
+
+export interface FounderProfileSummaryDto {
+  id: string;
+  userId: string;
+  displayName: string;
+  headline?: string;
+  bio?: string;
+  currentRole?: string;
+  desiredRole?: string;
+  stage: StartupStage;
+  primarySector: IndustrySector;
+  locationCity?: string;
+  locationState?: string;
+  countryCode: string;
+  commitment: CommitmentPreference;
+  workLocation: WorkLocationPreference;
+  status: FounderProfileStatus;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  skills: FounderSkillDto[];
+  interests: FounderInterestDto[];
+  // Private contact details only included if mutual consent accepted
+  contactEmail?: string;
+  contactPhone?: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface CreateFounderProfileInput {
+  displayName: string;
+  headline?: string;
+  bio?: string;
+  currentRole?: string;
+  desiredRole?: string;
+  stage?: StartupStage;
+  primarySector?: IndustrySector;
+  locationCity?: string;
+  locationState?: string;
+  countryCode?: string;
+  commitment?: CommitmentPreference;
+  workLocation?: WorkLocationPreference;
+  status?: FounderProfileStatus;
+  contactEmail?: string;
+  contactPhone?: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  skills?: {
+    skillName: string;
+    skillType: SkillType;
+    proficiency?: SkillProficiency;
+  }[];
+  interests?: {
+    sector: IndustrySector;
+    priority?: number;
+  }[];
+}
+
+export interface UpdateFounderProfileInput extends Partial<CreateFounderProfileInput> {}
+
+export interface ConnectionRequestDto {
+  id: string;
+  requesterId: string;
+  recipientId: string;
+  status: ConnectionRequestStatus;
+  introduction?: string;
+  contactExchanged: boolean;
+  responseNote?: string;
+  createdAt: Date | string;
+  respondedAt?: Date | string;
+  requester?: FounderProfileSummaryDto;
+  recipient?: FounderProfileSummaryDto;
+}
+
+export interface SendConnectionRequestInput {
+  recipientProfileId: string;
+  introduction?: string;
+}
+
+export interface RespondConnectionRequestInput {
+  action: 'ACCEPT' | 'DECLINE';
+  responseNote?: string;
+}
+
+export interface CoFounderRecommendationDto {
+  candidateProfile: FounderProfileSummaryDto;
+  matchScore: number; // 0 to 100
+  matchReasons: string[];
+  complementarySkills: string[];
+  sharedSectors: string[];
+  synergies: string[];
+}
+
+
 // -------------------------------------------------------------
 // 7. Core User & Profile Data Transfer Objects (DTOs)
 // -------------------------------------------------------------

@@ -38,6 +38,9 @@ export default function RootLayout({
                 <Link href="/perks" className="hover:text-white transition font-medium text-slate-200">
                   Perks & Credits
                 </Link>
+                <Link href="/co-founders" className="hover:text-white transition font-medium text-purple-300">
+                  Co-Founders
+                </Link>
                 <Link href="/dashboard/saved" className="hover:text-white transition font-medium text-amber-300">
                   Saved Items
                 </Link>

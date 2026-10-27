@@ -14,6 +14,7 @@ import { ReviewQueueModule } from './review-queue/review-queue.module';
 import { OpportunitiesModule } from './opportunities/opportunities.module';
 import { PerksModule } from './perks/perks.module';
 import { SavedItemsModule } from './saved-items/saved-items.module';
+import { CoFounderModule } from './co-founder/co-founder.module';
 import * as path from 'path';
 
 @Module({
@@ -39,6 +40,7 @@ import * as path from 'path';
     OpportunitiesModule,
     PerksModule,
     SavedItemsModule,
+    CoFounderModule,
   ],
 })
 export class AppModule {}

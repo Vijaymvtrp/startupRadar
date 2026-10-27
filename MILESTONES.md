@@ -108,7 +108,27 @@
     - `/dashboard/saved` — Tabbed saved opportunities and perks with deadline badges and alert toggle.
     - `/dashboard/applications` — Confidential application tracker with status stages, private notes editor, and official portal CTAs.
   - Tests: `apps/api/test/milestone6.e2e-spec.ts` (6/6 passed).
-  - Full Sequential Suite: **34/34 passed across Milestones 1-6 (100%)**.
+  - Full Sequential Suite: 34/34 passed across Milestones 1-6.
+
+### Milestone 7 — Co-Founder Matching MVP
+- **Status:** Completed & Live Verified
+- **Key Deliverables:**
+  - DB Schema: Added `founder_profiles`, `founder_skills`, `founder_interests`, `connection_requests`, `blocked_users`, `profile_reports`, and enums `CommitmentPreference`, `WorkLocationPreference`, `ConnectionRequestStatus`, `FounderProfileStatus`, `SkillType`, `SkillProficiency`.
+  - Profile Management APIs:
+    - `POST /api/v1/founders/me`, `GET /api/v1/founders/me`, `GET /api/v1/founders/:id`.
+    - Strict privacy: Private contact details (`contactEmail`, `contactPhone`) are shielded from public discovery and only revealed upon mutual connection consent.
+  - Public Discovery API:
+    - `GET /api/v1/founders` with keyword search, sector, stage, commitment, location style, city, and skill filters; automatically excludes blocked users.
+  - Explainable Matching Engine:
+    - `GET /api/v1/founders/me/recommendations` calculating deterministic match scores (0–100%) with explainable bullet points (complementary skills, sector alignment, commitment synergy, and stage compatibility; no LLM hallucination).
+  - Consent-Based Connection Requests:
+    - `POST /api/v1/founders/connection-requests`, `GET /api/v1/founders/connection-requests`, `PATCH /api/v1/founders/connection-requests/:id/respond`, `POST /api/v1/founders/connection-requests/:id/withdraw`.
+  - Abuse Prevention & Moderation:
+    - `POST /api/v1/founders/:targetUserId/block`, `POST /api/v1/founders/:profileId/report`.
+  - Web UI:
+    - `/co-founders` — Co-Founders Directory with live search, sector badges, skill pills, "Connect" modal, and "Smart Recommendations" tab.
+  - Tests: `apps/api/test/milestone7.e2e-spec.ts` (6/6 passed).
+  - Full Sequential Suite: **40/40 passed across Milestones 1-7 (100% Green)**.
 
 ---
 
