@@ -248,3 +248,79 @@ export interface ActionRecommendation {
   suggestedNextStep: string;
   officialSourceUrl?: string;
 }
+
+// -------------------------------------------------------------
+// 9. Source Registry & Connector Types (Milestone 2)
+// -------------------------------------------------------------
+export enum SourceCollectionMethod {
+  AUTO_DETECT = 'AUTO_DETECT',
+  API = 'API',
+  RSS = 'RSS',
+  SITEMAP = 'SITEMAP',
+  HTML = 'HTML',
+}
+
+export enum SourceHealthStatus {
+  NEW = 'NEW',
+  CONFIGURING = 'CONFIGURING',
+  HEALTHY = 'HEALTHY',
+  WARNING = 'WARNING',
+  FAILED = 'FAILED',
+  PAUSED = 'PAUSED',
+  UNSUPPORTED = 'UNSUPPORTED',
+}
+
+export enum SourcePriority {
+  HIGH = 'HIGH',
+  MEDIUM = 'MEDIUM',
+  LOW = 'LOW',
+}
+
+export enum SourceRunStatus {
+  QUEUED = 'QUEUED',
+  RUNNING = 'RUNNING',
+  SUCCESS = 'SUCCESS',
+  PARTIAL_SUCCESS = 'PARTIAL_SUCCESS',
+  FAILED = 'FAILED',
+}
+
+export interface SourceSummaryDto {
+  id: string;
+  name: string;
+  baseUrl: string;
+  category: OpportunityCategory;
+  collectionMethod: SourceCollectionMethod;
+  priority: SourcePriority;
+  checkFrequencyMinutes: number;
+  isEnabled: boolean;
+  healthStatus: SourceHealthStatus;
+  rateLimitPerMinute: number;
+  lastCheckedAt?: Date;
+  lastSuccessAt?: Date;
+  lastError?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DiscoveredItemPreview {
+  title: string;
+  url: string;
+  publishedAt?: Date;
+  summary?: string;
+  deadline?: Date;
+  organizer?: string;
+  confidenceScore: number;
+}
+
+export interface SourceTestResult {
+  success: boolean;
+  reachable: boolean;
+  detectedMethod?: SourceCollectionMethod;
+  statusCode?: number;
+  latencyMs: number;
+  sampleItemsCount: number;
+  sampleItems: DiscoveredItemPreview[];
+  warnings?: string[];
+  errorMessage?: string;
+}
+

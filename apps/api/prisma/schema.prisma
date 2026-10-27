@@ -76,6 +76,19 @@ enum StartupNeed {
   OTHER
 }
 
+enum OpportunityCategory {
+  GOVERNMENT_SCHEME
+  GRANT_FUNDING
+  INCUBATOR_ACCELERATOR
+  STARTUP_EVENT
+  PITCH_COMPETITION
+  HACKATHON_CHALLENGE
+  CORPORATE_INNOVATION
+  ENTREPRENEURSHIP_PROGRAM
+  TENDER_PROCUREMENT
+  RESEARCH_DEVELOPMENT
+}
+
 enum VerificationStatus {
   PENDING
   NEEDS_REVIEW
@@ -185,3 +198,124 @@ model AuditLog {
   @@index([action])
   @@map("audit_logs")
 }
+
+// -------------------------------------------------------------
+// Source Registry & Data Collection Models (Milestone 2)
+// -------------------------------------------------------------
+
+enum SourceCollectionMethod {
+  AUTO_DETECT
+  API
+  RSS
+  SITEMAP
+  HTML
+}
+
+enum SourceHealthStatus {
+  NEW
+  CONFIGURING
+  HEALTHY
+  WARNING
+  FAILED
+  PAUSED
+  UNSUPPORTED
+}
+
+enum SourcePriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum SourceRunStatus {
+  QUEUED
+  RUNNING
+  SUCCESS
+  PARTIAL_SUCCESS
+  FAILED
+}
+
+model Source {
+  id                    String                 @id @default(uuid())
+  name                  String
+  baseUrl               String
+  allowedDomains        String[]
+  category              OpportunityCategory    @default(GOVERNMENT_SCHEME)
+  collectionMethod      SourceCollectionMethod @default(AUTO_DETECT)
+  priority              SourcePriority         @default(MEDIUM)
+  checkFrequencyMinutes Int                    @default(1440)
+  isEnabled             Boolean                @default(true)
+  healthStatus          SourceHealthStatus     @default(NEW)
+  rateLimitPerMinute    Int                    @default(10)
+  countryCode           String                 @default("IN")
+  stateCode             String?
+  city                  String?
+  notes                 String?
+  lastCheckedAt         DateTime?
+  lastSuccessAt         DateTime?
+  lastError             String?
+  config                SourceConfig?
+  runs                  SourceRun[]
+  checks                SourceCheck[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  @@index([healthStatus])
+  @@index([isEnabled])
+  @@index([collectionMethod])
+  @@map("sources")
+}
+
+model SourceConfig {
+  id                   String   @id @default(uuid())
+  sourceId             String   @unique
+  source               Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  apiEndpoint          String?
+  apiHeaders           Json?
+  feedUrl              String?
+  sitemapUrl           String?
+  htmlListingSelector  String?
+  htmlTitleSelector    String?
+  htmlDeadlineSelector String?
+  htmlLinkSelector     String?
+  htmlDescSelector     String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("source_configs")
+}
+
+model SourceRun {
+  id              String          @id @default(uuid())
+  sourceId        String
+  source          Source          @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  status          SourceRunStatus @default(RUNNING)
+  itemsDiscovered Int             @default(0)
+  itemsExtracted  Int             @default(0)
+  errorMessage    String?
+  startedAt       DateTime        @default(now())
+  finishedAt      DateTime?
+  durationMs      Int?
+
+  @@index([sourceId])
+  @@index([status])
+  @@map("source_runs")
+}
+
+model SourceCheck {
+  id            String    @id @default(uuid())
+  sourceId      String
+  source        Source    @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  url           String
+  etag          String?
+  lastModified  String?
+  contentHash   String?
+  statusCode    Int?
+  checkStatus   String    @default("SUCCESS")
+  lastCheckedAt DateTime  @default(now())
+  lastChangedAt DateTime?
+
+  @@index([sourceId, url])
+  @@map("source_checks")
+}
+

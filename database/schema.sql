@@ -229,3 +229,135 @@ ALTER TABLE "audit_logs"
 DROP CONSTRAINT IF EXISTS "audit_logs_userId_fkey",
 ADD CONSTRAINT "audit_logs_userId_fkey" 
 FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- =============================================================
+-- Milestone 2: Source Registry & Ingestion Pipeline DDL
+-- =============================================================
+
+CREATE TYPE "SourceCollectionMethod" AS ENUM (
+    'AUTO_DETECT',
+    'API',
+    'RSS',
+    'SITEMAP',
+    'HTML'
+);
+
+CREATE TYPE "SourceHealthStatus" AS ENUM (
+    'NEW',
+    'CONFIGURING',
+    'HEALTHY',
+    'WARNING',
+    'FAILED',
+    'PAUSED',
+    'UNSUPPORTED'
+);
+
+CREATE TYPE "SourcePriority" AS ENUM (
+    'HIGH',
+    'MEDIUM',
+    'LOW'
+);
+
+CREATE TYPE "SourceRunStatus" AS ENUM (
+    'QUEUED',
+    'RUNNING',
+    'SUCCESS',
+    'PARTIAL_SUCCESS',
+    'FAILED'
+);
+
+CREATE TABLE IF NOT EXISTS "sources" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "baseUrl" TEXT NOT NULL,
+    "allowedDomains" TEXT[] NOT NULL,
+    "category" "OpportunityCategory" NOT NULL DEFAULT 'GOVERNMENT_SCHEME',
+    "collectionMethod" "SourceCollectionMethod" NOT NULL DEFAULT 'AUTO_DETECT',
+    "priority" "SourcePriority" NOT NULL DEFAULT 'MEDIUM',
+    "checkFrequencyMinutes" INTEGER NOT NULL DEFAULT 1440,
+    "isEnabled" BOOLEAN NOT NULL DEFAULT true,
+    "healthStatus" "SourceHealthStatus" NOT NULL DEFAULT 'NEW',
+    "rateLimitPerMinute" INTEGER NOT NULL DEFAULT 10,
+    "countryCode" TEXT NOT NULL DEFAULT 'IN',
+    "stateCode" TEXT,
+    "city" TEXT,
+    "notes" TEXT,
+    "lastCheckedAt" TIMESTAMP(3),
+    "lastSuccessAt" TIMESTAMP(3),
+    "lastError" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "sources_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "source_configs" (
+    "id" TEXT NOT NULL,
+    "sourceId" TEXT NOT NULL,
+    "apiEndpoint" TEXT,
+    "apiHeaders" JSONB,
+    "feedUrl" TEXT,
+    "sitemapUrl" TEXT,
+    "htmlListingSelector" TEXT,
+    "htmlTitleSelector" TEXT,
+    "htmlDeadlineSelector" TEXT,
+    "htmlLinkSelector" TEXT,
+    "htmlDescSelector" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "source_configs_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "source_runs" (
+    "id" TEXT NOT NULL,
+    "sourceId" TEXT NOT NULL,
+    "status" "SourceRunStatus" NOT NULL DEFAULT 'RUNNING',
+    "itemsDiscovered" INTEGER NOT NULL DEFAULT 0,
+    "itemsExtracted" INTEGER NOT NULL DEFAULT 0,
+    "errorMessage" TEXT,
+    "startedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "finishedAt" TIMESTAMP(3),
+    "durationMs" INTEGER,
+
+    CONSTRAINT "source_runs_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "source_checks" (
+    "id" TEXT NOT NULL,
+    "sourceId" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "etag" TEXT,
+    "lastModified" TEXT,
+    "contentHash" TEXT,
+    "statusCode" INTEGER,
+    "checkStatus" TEXT NOT NULL DEFAULT 'SUCCESS',
+    "lastCheckedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastChangedAt" TIMESTAMP(3),
+
+    CONSTRAINT "source_checks_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "source_configs_sourceId_key" ON "source_configs"("sourceId");
+CREATE INDEX IF NOT EXISTS "sources_healthStatus_idx" ON "sources"("healthStatus");
+CREATE INDEX IF NOT EXISTS "sources_isEnabled_idx" ON "sources"("isEnabled");
+CREATE INDEX IF NOT EXISTS "sources_collectionMethod_idx" ON "sources"("collectionMethod");
+CREATE INDEX IF NOT EXISTS "source_runs_sourceId_idx" ON "source_runs"("sourceId");
+CREATE INDEX IF NOT EXISTS "source_runs_status_idx" ON "source_runs"("status");
+CREATE INDEX IF NOT EXISTS "source_checks_sourceId_url_idx" ON "source_checks"("sourceId", "url");
+
+ALTER TABLE "source_configs" 
+DROP CONSTRAINT IF EXISTS "source_configs_sourceId_fkey",
+ADD CONSTRAINT "source_configs_sourceId_fkey" 
+FOREIGN KEY ("sourceId") REFERENCES "sources"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "source_runs" 
+DROP CONSTRAINT IF EXISTS "source_runs_sourceId_fkey",
+ADD CONSTRAINT "source_runs_sourceId_fkey" 
+FOREIGN KEY ("sourceId") REFERENCES "sources"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "source_checks" 
+DROP CONSTRAINT IF EXISTS "source_checks_sourceId_fkey",
+ADD CONSTRAINT "source_checks_sourceId_fkey" 
+FOREIGN KEY ("sourceId") REFERENCES "sources"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+

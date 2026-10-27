@@ -5,6 +5,9 @@ import { HealthModule } from './health/health.module';
 import { TaxonomyModule } from './taxonomy/taxonomy.module';
 import { AuthModule } from './auth/auth.module';
 import { StartupProfileModule } from './startup-profile/startup-profile.module';
+import { ConnectorsModule } from './connectors/connectors.module';
+import { QueueModule } from './queue/queue.module';
+import { SourcesModule } from './sources/sources.module';
 import * as path from 'path';
 
 @Module({
@@ -21,6 +24,9 @@ import * as path from 'path';
     TaxonomyModule,
     AuthModule,
     StartupProfileModule,
+    ConnectorsModule,
+    QueueModule,
+    SourcesModule,
   ],
 })
 export class AppModule {}
