@@ -22,7 +22,7 @@
 | **6** | **Founder Accounts, Saved Items & Alerts** | User bookmarks, deadline email notifications, private application status tracking, preference controls. | ✅ **Completed** | `milestone6.e2e-spec.ts` (6/6 Passed) | `5ba495e` |
 | **7** | **Co-Founder Matching MVP** | Founder profiles, skills sought/offered, commitment & stage preferences, mutual-consent connection requests, anti-abuse & privacy controls. | ✅ **Completed** | `milestone7.e2e-spec.ts` (6/6 Passed) | `c7d5c5c` |
 | **8** | **Startup Intelligence & Action Engine** | Deterministic profile-based opportunity/perk recommendations, explainable match rationale, missing-eligibility flags, next-step suggestions, founder feedback & dismissal controls. | ✅ **Completed** | `milestone8.e2e-spec.ts` (6/6 Passed) | `e6dba49` |
-| **9** | **Production Readiness & Pilot Measurement** | OWASP Security headers, sliding-window rate limiting (`X-RateLimit-*`), live operational metrics endpoint, Docker compose & Dockerfile topology, production runbook. | ✅ **Completed** | `milestone9.e2e-spec.ts` (5/5 Passed) | Pending Commit |
+| **9** | **Production Readiness & Pilot Measurement** | OWASP Security headers, sliding-window rate limiting (`X-RateLimit-*`), live operational metrics endpoint, Docker compose & Dockerfile topology, production runbook. | ✅ **Completed** | `milestone9.e2e-spec.ts` (5/5 Passed) | `cf5d592` |
 
 ---
 
