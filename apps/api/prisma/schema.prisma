@@ -459,4 +459,108 @@ model ReviewQueueItem {
   @@map("review_queue_items")
 }
 
+// -------------------------------------------------------------
+// Milestone 5: Startup Perks & Credits Models
+// -------------------------------------------------------------
+
+enum PerkBenefitType {
+  CLOUD_CREDITS
+  AI_API_CREDITS
+  DEVELOPER_TOOL
+  FREE_TIER
+  FREE_TRIAL
+  DISCOUNT
+  BUSINESS_SOFTWARE
+  INFRASTRUCTURE
+  FACILITY_ACCESS
+  PARTNER_SERVICE
+  OTHER
+}
+
+enum PerkProgramStatus {
+  ACTIVE
+  EXPIRED
+  WAITLIST
+  CLOSED
+}
+
+model PerkProvider {
+  id                 String               @id @default(uuid())
+  name               String               @unique
+  officialDomain     String
+  providerType       String               @default("OTHER")
+  logoUrl            String?
+  verificationStatus VerificationStatus   @default(PENDING)
+  programs           StartupPerkProgram[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  @@map("perk_providers")
+}
+
+model StartupPerkProgram {
+  id                  String                      @id @default(uuid())
+  providerId          String
+  provider            PerkProvider                @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  slug                String                      @unique
+  programName         String
+  description         String?
+  officialProgramUrl  String
+  applicationUrl      String?
+  benefitType         PerkBenefitType             @default(CLOUD_CREDITS)
+  statedValueAmount   Float?
+  currency            String                      @default("USD")
+  eligibleCountries   String[]                    @default(["IN"])
+  eligibleStages      String[]                    @default([])
+  status              PerkProgramStatus           @default(ACTIVE)
+  verificationStatus  VerificationStatus          @default(PENDING)
+  publicationStatus   PublicationStatus           @default(DRAFT)
+  startAt             DateTime?
+  endAt               DateTime?
+  lastCheckedAt       DateTime?
+  verifiedAt          DateTime?
+  verifiedBy          String?
+  verificationNotes   String?
+  eligibilityCriteria PerkEligibilityCriterion[]
+  sources             PerkSource[]
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+
+  @@index([benefitType])
+  @@index([status])
+  @@index([verificationStatus])
+  @@index([publicationStatus])
+  @@map("startup_perk_programs")
+}
+
+model PerkEligibilityCriterion {
+  id            String             @id @default(uuid())
+  programId     String
+  program       StartupPerkProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  criterionType String             @default("GENERAL")
+  description   String
+  isMandatory   Boolean            @default(true)
+  createdAt     DateTime           @default(now())
+
+  @@index([programId])
+  @@map("perk_eligibility_criteria")
+}
+
+model PerkSource {
+  id              String             @id @default(uuid())
+  programId       String
+  program         StartupPerkProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  sourceUrl       String
+  sourceType      String             @default("PRIMARY")
+  contentHash     String?
+  isPrimarySource Boolean            @default(true)
+  firstSeenAt     DateTime           @default(now())
+  lastSeenAt      DateTime           @default(now())
+
+  @@unique([programId, sourceUrl])
+  @@index([sourceUrl])
+  @@map("perk_sources")
+}
+
+
 

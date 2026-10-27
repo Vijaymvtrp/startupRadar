@@ -18,13 +18,13 @@ We are delivering the platform in 9 structured milestones as defined in [startup
 | 2 | Source Registry & Background Ingestion Pipeline | ✅ **Completed** (6/6 Tests) |
 | 3 | Change Detection, Deduplication & Review Queue | ✅ **Completed** (5/5 Tests) |
 | 4 | Startup Opportunities MVP | ✅ **Completed** (6/6 Tests) |
-| 5 | Startup Perks & Credits MVP | ⏳ **Next Up** |
-| 6 | Founder Accounts, Saved Items & Alerts | 📋 Pending |
+| 5 | Startup Perks & Credits MVP | ✅ **Completed** (6/6 Tests) |
+| 6 | Founder Accounts, Saved Items & Alerts | ⏳ **Next Up** |
 | 7 | Co-Founder Matching MVP | 📋 Pending |
 | 8 | Startup Intelligence & Action Engine | 📋 Pending |
 | 9 | Production Readiness & Pilot Launch | 📋 Pending |
 
-**All 22 E2E tests across Milestones 1–4 are passing (100% test coverage for completed features).**
+**All 28 E2E tests across Milestones 1–5 are passing (100% test coverage for completed features).**
 
 ---
 

@@ -520,4 +520,121 @@ DROP CONSTRAINT IF EXISTS "review_queue_items_opportunityId_fkey",
 ADD CONSTRAINT "review_queue_items_opportunityId_fkey" 
 FOREIGN KEY ("opportunityId") REFERENCES "opportunities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- =============================================================
+-- Milestone 5: Startup Perks & Credits DDL
+-- =============================================================
+
+CREATE TYPE "PerkBenefitType" AS ENUM (
+    'CLOUD_CREDITS',
+    'AI_API_CREDITS',
+    'DEVELOPER_TOOL',
+    'FREE_TIER',
+    'FREE_TRIAL',
+    'DISCOUNT',
+    'BUSINESS_SOFTWARE',
+    'INFRASTRUCTURE',
+    'FACILITY_ACCESS',
+    'PARTNER_SERVICE',
+    'OTHER'
+);
+
+CREATE TYPE "PerkProgramStatus" AS ENUM (
+    'ACTIVE',
+    'EXPIRED',
+    'WAITLIST',
+    'CLOSED'
+);
+
+CREATE TABLE IF NOT EXISTS "perk_providers" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "officialDomain" TEXT NOT NULL,
+    "providerType" TEXT NOT NULL DEFAULT 'OTHER',
+    "logoUrl" TEXT,
+    "verificationStatus" "VerificationStatus" NOT NULL DEFAULT 'PENDING',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "perk_providers_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "startup_perk_programs" (
+    "id" TEXT NOT NULL,
+    "providerId" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "programName" TEXT NOT NULL,
+    "description" TEXT,
+    "officialProgramUrl" TEXT NOT NULL,
+    "applicationUrl" TEXT,
+    "benefitType" "PerkBenefitType" NOT NULL DEFAULT 'CLOUD_CREDITS',
+    "statedValueAmount" DOUBLE PRECISION,
+    "currency" TEXT NOT NULL DEFAULT 'USD',
+    "eligibleCountries" TEXT[] NOT NULL DEFAULT ARRAY['IN']::TEXT[],
+    "eligibleStages" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+    "status" "PerkProgramStatus" NOT NULL DEFAULT 'ACTIVE',
+    "verificationStatus" "VerificationStatus" NOT NULL DEFAULT 'PENDING',
+    "publicationStatus" "PublicationStatus" NOT NULL DEFAULT 'DRAFT',
+    "startAt" TIMESTAMP(3),
+    "endAt" TIMESTAMP(3),
+    "lastCheckedAt" TIMESTAMP(3),
+    "verifiedAt" TIMESTAMP(3),
+    "verifiedBy" TEXT,
+    "verificationNotes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "startup_perk_programs_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "perk_eligibility_criteria" (
+    "id" TEXT NOT NULL,
+    "programId" TEXT NOT NULL,
+    "criterionType" TEXT NOT NULL DEFAULT 'GENERAL',
+    "description" TEXT NOT NULL,
+    "isMandatory" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "perk_eligibility_criteria_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "perk_sources" (
+    "id" TEXT NOT NULL,
+    "programId" TEXT NOT NULL,
+    "sourceUrl" TEXT NOT NULL,
+    "sourceType" TEXT NOT NULL DEFAULT 'PRIMARY',
+    "contentHash" TEXT,
+    "isPrimarySource" BOOLEAN NOT NULL DEFAULT true,
+    "firstSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "perk_sources_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "perk_providers_name_key" ON "perk_providers"("name");
+CREATE UNIQUE INDEX IF NOT EXISTS "startup_perk_programs_slug_key" ON "startup_perk_programs"("slug");
+CREATE INDEX IF NOT EXISTS "startup_perk_programs_benefitType_idx" ON "startup_perk_programs"("benefitType");
+CREATE INDEX IF NOT EXISTS "startup_perk_programs_status_idx" ON "startup_perk_programs"("status");
+CREATE INDEX IF NOT EXISTS "startup_perk_programs_verificationStatus_idx" ON "startup_perk_programs"("verificationStatus");
+CREATE INDEX IF NOT EXISTS "startup_perk_programs_publicationStatus_idx" ON "startup_perk_programs"("publicationStatus");
+
+CREATE INDEX IF NOT EXISTS "perk_eligibility_criteria_programId_idx" ON "perk_eligibility_criteria"("programId");
+CREATE UNIQUE INDEX IF NOT EXISTS "perk_sources_programId_sourceUrl_key" ON "perk_sources"("programId", "sourceUrl");
+CREATE INDEX IF NOT EXISTS "perk_sources_sourceUrl_idx" ON "perk_sources"("sourceUrl");
+
+ALTER TABLE "startup_perk_programs" 
+DROP CONSTRAINT IF EXISTS "startup_perk_programs_providerId_fkey",
+ADD CONSTRAINT "startup_perk_programs_providerId_fkey" 
+FOREIGN KEY ("providerId") REFERENCES "perk_providers"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "perk_eligibility_criteria" 
+DROP CONSTRAINT IF EXISTS "perk_eligibility_criteria_programId_fkey",
+ADD CONSTRAINT "perk_eligibility_criteria_programId_fkey" 
+FOREIGN KEY ("programId") REFERENCES "startup_perk_programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "perk_sources" 
+DROP CONSTRAINT IF EXISTS "perk_sources_programId_fkey",
+ADD CONSTRAINT "perk_sources_programId_fkey" 
+FOREIGN KEY ("programId") REFERENCES "startup_perk_programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+
 

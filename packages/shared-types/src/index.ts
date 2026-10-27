@@ -203,6 +203,56 @@ export enum PerkBenefitType {
   OTHER = 'OTHER',
 }
 
+export enum PerkProgramStatus {
+  ACTIVE = 'ACTIVE',
+  EXPIRED = 'EXPIRED',
+  WAITLIST = 'WAITLIST',
+  CLOSED = 'CLOSED',
+}
+
+export interface PerkListItemDto {
+  id: string;
+  slug: string;
+  programName: string;
+  providerName: string;
+  providerLogoUrl?: string;
+  description?: string;
+  officialProgramUrl: string;
+  applicationUrl?: string;
+  benefitType: PerkBenefitType;
+  statedValueAmount?: number;
+  currency: string;
+  status: PerkProgramStatus;
+  verificationStatus: VerificationStatus;
+  publicationStatus: PublicationStatus;
+  eligibleStages: string[];
+  eligibleCountries: string[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface PerkDetailDto extends PerkListItemDto {
+  startAt?: Date | string;
+  endAt?: Date | string;
+  lastCheckedAt?: Date | string;
+  verifiedAt?: Date | string;
+  verifiedBy?: string;
+  verificationNotes?: string;
+  sources: {
+    id: string;
+    sourceUrl: string;
+    sourceType: string;
+    isPrimarySource: boolean;
+    lastSeenAt: Date | string;
+  }[];
+  eligibilityCriteria?: {
+    id: string;
+    criterionType: string;
+    description: string;
+    isMandatory: boolean;
+  }[];
+}
+
 // -------------------------------------------------------------
 // 6. Taxonomy: Co-Founder Matching
 // -------------------------------------------------------------

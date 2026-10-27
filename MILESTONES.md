@@ -4,8 +4,8 @@
 **Specification:** [startup_radar_india_complete_spec_v3.md](./startup_radar_india_complete_spec_v3.md)  
 **Database:** Supabase PostgreSQL (`aws-0-ap-south-1.pooler.supabase.com:5432/postgres`)  
 **Cache / Queue:** Upstash Serverless Redis (`rediss://optimum-starfish-132990.upstash.io:6379`)  
-**Current Status:** **4 / 9 Milestones Completed (44% Finished)**  
-**Automated Tests:** **22 / 22 E2E Tests Passing (100%)**  
+**Current Status:** **5 / 9 Milestones Completed (55% Finished)**  
+**Automated Tests:** **28 / 28 E2E Tests Passing (100%)**  
 **Last Updated:** 27 October 2026
 
 ---
@@ -18,8 +18,8 @@
 | **2** | **Source Registry & Background Ingestion Pipeline** | SSRF protection guard, RSS/Sitemap/HTML Cheerio connectors, BullMQ on Upstash Redis, Sources Management Admin API & Web UI. | ✅ **Completed** | `milestone2.e2e-spec.ts` (6/6 Passed) | `e72dcf4` |
 | **3** | **Change Detection, Deduplication & Review Queue** | ETag/Last-Modified, HTML sanitization, SHA-256 hash hashing, Canonical draft creation, secondary source linking, Human Review Queue for conflicts, selective LLM extractor. | ✅ **Completed** | `milestone3.e2e-spec.ts` (5/5 Passed) | `730a420` |
 | **4** | **Startup Opportunities MVP** | Public Opportunity Search with facet filters (category, stage, industry, central/state gov level, deadline status), Canonical slug detail view with source provenance, Admin Official Gazette Verification & Rejection workflows, Next.js directory & detail pages. | ✅ **Completed** | `milestone4.e2e-spec.ts` (6/6 Passed) | `7c9e10f` |
-| **5** | **Startup Perks & Credits MVP** | Official startup credits directory (Cloud, AI/API, Developer tools, SaaS discounts), eligibility criteria, recheck/staleness tracking, Next.js `/perks` UI. | ⏳ **Next Up** | `milestone5.e2e-spec.ts` | Planned |
-| **6** | **Founder Accounts, Saved Items & Alerts** | User bookmarks, deadline email notifications, private application status tracking, preference controls. | 📋 Pending | `milestone6.e2e-spec.ts` | Planned |
+| **5** | **Startup Perks & Credits MVP** | Official startup credits directory (Cloud, AI/API, Developer tools, SaaS discounts), eligibility criteria checklist, provider verification, Next.js `/perks` directory & detail pages. | ✅ **Completed** | `milestone5.e2e-spec.ts` (6/6 Passed) | Pending Commit |
+| **6** | **Founder Accounts, Saved Items & Alerts** | User bookmarks, deadline email notifications, private application status tracking, preference controls. | ⏳ **Next Up** | `milestone6.e2e-spec.ts` | Planned |
 | **7** | **Co-Founder Matching MVP** | Founder profiles, skills sought/offered, commitment & stage preferences, mutual-consent connection requests, anti-abuse & privacy controls. | 📋 Pending | `milestone7.e2e-spec.ts` | Planned |
 | **8** | **Startup Intelligence & Action Engine** | Deterministic profile-based opportunity/perk recommendations, explainable match rationale, missing-eligibility flags, next-step suggestions. | 📋 Pending | `milestone8.e2e-spec.ts` | Planned |
 | **9** | **Production Readiness & Pilot Measurement** | Rate limiting, security audits, source freshness metrics, Docker/Cloud deployment configuration. | 📋 Pending | `milestone9.e2e-spec.ts` | Planned |
@@ -73,6 +73,20 @@
   - Tests: `apps/api/test/milestone4.e2e-spec.ts` (6/6 passed).
   - Full Sequential Suite: 22/22 passed across Milestones 1-4.
 
+### Milestone 5 — Startup Perks & Credits MVP
+- **Status:** Completed & Live Verified
+- **Key Deliverables:**
+  - DB Schema: Added `perk_providers`, `startup_perk_programs`, `perk_eligibility_criteria`, `perk_sources`, and enums `PerkBenefitType`, `PerkProgramStatus`.
+  - Public Search API: `GET /api/v1/perks` with keyword search, benefitType, provider, stage, country, and status filters.
+  - Canonical Slug API: `GET /api/v1/perks/:slug` with provider information, eligibility criteria, and primary source links.
+  - Admin Verification API: `POST /api/v1/admin/perks/:id/verify` (records official verification notes and writes audit log).
+  - Admin Rejection API: `POST /api/v1/admin/perks/:id/reject`.
+  - Web UI:
+    - `/perks` — Perks Directory with category pills (Cloud Credits, AI Credits, Dev Tools, SaaS Discounts), search, and value highlights.
+    - `/perks/[slug]` — Canonical detail view with "Apply on Official Portal" CTA, terms guidelines, and data integrity banner.
+  - Tests: `apps/api/test/milestone5.e2e-spec.ts` (6/6 passed).
+  - Full Sequential Suite: **28/28 passed across Milestones 1-5**.
+
 ---
 
 ## How to Run Tests
@@ -81,3 +95,4 @@ From the root directory:
 # Run all Milestone E2E tests in sequence
 npm.cmd --prefix apps/api run test:e2e -- --runInBand milestone
 ```
+

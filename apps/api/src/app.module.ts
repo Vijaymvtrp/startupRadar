@@ -12,6 +12,7 @@ import { ChangeDetectionModule } from './change-detection/change-detection.modul
 import { DeduplicationModule } from './deduplication/deduplication.module';
 import { ReviewQueueModule } from './review-queue/review-queue.module';
 import { OpportunitiesModule } from './opportunities/opportunities.module';
+import { PerksModule } from './perks/perks.module';
 import * as path from 'path';
 
 @Module({
@@ -35,6 +36,7 @@ import * as path from 'path';
     DeduplicationModule,
     ReviewQueueModule,
     OpportunitiesModule,
+    PerksModule,
   ],
 })
 export class AppModule {}
