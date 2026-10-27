@@ -396,6 +396,13 @@ CREATE TYPE "ReviewStatus" AS ENUM (
     'REJECTED'
 );
 
+CREATE TYPE "DeliveryMode" AS ENUM (
+    'ONLINE',
+    'OFFLINE',
+    'HYBRID',
+    'NOT_SPECIFIED'
+);
+
 CREATE TABLE IF NOT EXISTS "opportunities" (
     "id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
@@ -409,6 +416,9 @@ CREATE TABLE IF NOT EXISTS "opportunities" (
     "countryCode" TEXT NOT NULL DEFAULT 'IN',
     "stateCode" TEXT,
     "city" TEXT,
+    "deliveryMode" "DeliveryMode" NOT NULL DEFAULT 'NOT_SPECIFIED',
+    "startupStages" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+    "industries" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
     "benefitType" "OpportunityBenefitType" NOT NULL DEFAULT 'GRANT',
     "benefitAmountMin" DOUBLE PRECISION,
     "benefitAmountMax" DOUBLE PRECISION,
@@ -419,9 +429,13 @@ CREATE TABLE IF NOT EXISTS "opportunities" (
     "applicationOpenAt" TIMESTAMP(3),
     "applicationDeadline" TIMESTAMP(3),
     "officialApplicationUrl" TEXT,
+    "officialNotificationUrl" TEXT,
     "eligibilitySummary" TEXT,
     "verificationStatus" "VerificationStatus" NOT NULL DEFAULT 'PENDING',
     "publicationStatus" "PublicationStatus" NOT NULL DEFAULT 'DRAFT',
+    "verifiedAt" TIMESTAMP(3),
+    "verifiedBy" TEXT,
+    "verificationNotes" TEXT,
     "firstSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastCheckedAt" TIMESTAMP(3),
@@ -429,6 +443,17 @@ CREATE TABLE IF NOT EXISTS "opportunities" (
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "opportunities_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "opportunity_eligibility_criteria" (
+    "id" TEXT NOT NULL,
+    "opportunityId" TEXT NOT NULL,
+    "criterionType" TEXT NOT NULL DEFAULT 'GENERAL',
+    "description" TEXT NOT NULL,
+    "isMandatory" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "opportunity_eligibility_criteria_pkey" PRIMARY KEY ("id")
 );
 
 CREATE TABLE IF NOT EXISTS "opportunity_sources" (
@@ -457,6 +482,14 @@ CREATE TABLE IF NOT EXISTS "review_queue_items" (
 
     CONSTRAINT "review_queue_items_pkey" PRIMARY KEY ("id")
 );
+
+CREATE INDEX IF NOT EXISTS "opportunity_eligibility_criteria_opportunityId_idx" 
+ON "opportunity_eligibility_criteria"("opportunityId");
+
+ALTER TABLE "opportunity_eligibility_criteria" 
+DROP CONSTRAINT IF EXISTS "opportunity_eligibility_criteria_opportunityId_fkey",
+ADD CONSTRAINT "opportunity_eligibility_criteria_opportunityId_fkey" 
+FOREIGN KEY ("opportunityId") REFERENCES "opportunities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "opportunities_slug_key" ON "opportunities"("slug");
 CREATE INDEX IF NOT EXISTS "opportunities_category_idx" ON "opportunities"("category");

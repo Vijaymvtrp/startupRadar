@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import Link from 'next/link';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -21,7 +22,7 @@ export default function RootLayout({
         <div className="min-h-screen flex flex-col">
           <header className="border-b border-slate-800 bg-slate-900/70 backdrop-blur-md sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <Link href="/" className="flex items-center gap-3">
                 <span className="text-2xl">🛰️</span>
                 <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-indigo-400 via-sky-300 to-emerald-400 bg-clip-text text-transparent">
                   Startup Radar India
@@ -29,12 +30,16 @@ export default function RootLayout({
                 <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800 font-medium">
                   v3.0 Pilot
                 </span>
-              </div>
+              </Link>
               <nav className="flex items-center gap-6 text-sm text-slate-300">
-                <a href="#opportunities" className="hover:text-white transition">Opportunities</a>
+                <Link href="/opportunities" className="hover:text-white transition font-medium text-slate-200">
+                  Opportunities
+                </Link>
                 <a href="#perks" className="hover:text-white transition">Perks & Credits</a>
                 <a href="#co-founder" className="hover:text-white transition">Find Co-Founder</a>
-                <a href="/admin/sources" className="hover:text-white text-indigo-300 font-medium transition">Admin Sources</a>
+                <Link href="/admin/sources" className="hover:text-white text-indigo-300 font-medium transition">
+                  Admin Sources
+                </Link>
                 <a href="#profile" className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition shadow-sm">
                   Startup Profile
                 </a>

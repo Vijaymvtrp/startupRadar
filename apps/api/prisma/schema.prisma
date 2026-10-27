@@ -355,39 +355,54 @@ model SourceCheck {
 // Canonical Opportunities & Deduplication (Milestone 3)
 // -------------------------------------------------------------
 
+enum DeliveryMode {
+  ONLINE
+  OFFLINE
+  HYBRID
+  NOT_SPECIFIED
+}
+
 model Opportunity {
-  id                     String                 @id @default(uuid())
-  slug                   String                 @unique
-  title                  String
-  summary                String?
-  description            String?
-  organizer              String?
-  category               OpportunityCategory    @default(GOVERNMENT_SCHEME)
-  governmentLevel        GovernmentLevel        @default(NOT_APPLICABLE)
-  departmentName         String?
-  countryCode            String                 @default("IN")
-  stateCode              String?
-  city                   String?
-  benefitType            OpportunityBenefitType @default(GRANT)
-  benefitAmountMin       Float?
-  benefitAmountMax       Float?
-  currency               String                 @default("INR")
-  sourcePublishedAt      DateTime?
-  eventStartAt           DateTime?
-  eventEndAt             DateTime?
-  applicationOpenAt      DateTime?
-  applicationDeadline    DateTime?
-  officialApplicationUrl String?
-  eligibilitySummary     String?
-  verificationStatus     VerificationStatus     @default(PENDING)
-  publicationStatus      PublicationStatus      @default(DRAFT)
-  firstSeenAt            DateTime               @default(now())
-  lastSeenAt             DateTime               @default(now())
-  lastCheckedAt          DateTime?
-  sources                OpportunitySource[]
-  reviewItems            ReviewQueueItem[]
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @updatedAt
+  id                      String                            @id @default(uuid())
+  slug                    String                            @unique
+  title                   String
+  summary                 String?
+  description             String?
+  organizer               String?
+  category                OpportunityCategory               @default(GOVERNMENT_SCHEME)
+  governmentLevel         GovernmentLevel                   @default(NOT_APPLICABLE)
+  departmentName          String?
+  countryCode             String                            @default("IN")
+  stateCode               String?
+  city                    String?
+  deliveryMode            DeliveryMode                      @default(NOT_SPECIFIED)
+  startupStages           String[]                          @default([])
+  industries              String[]                          @default([])
+  benefitType             OpportunityBenefitType            @default(GRANT)
+  benefitAmountMin        Float?
+  benefitAmountMax        Float?
+  currency                String                            @default("INR")
+  sourcePublishedAt       DateTime?
+  eventStartAt            DateTime?
+  eventEndAt              DateTime?
+  applicationOpenAt       DateTime?
+  applicationDeadline     DateTime?
+  officialApplicationUrl  String?
+  officialNotificationUrl String?
+  eligibilitySummary      String?
+  verificationStatus      VerificationStatus                @default(PENDING)
+  publicationStatus       PublicationStatus                 @default(DRAFT)
+  verifiedAt              DateTime?
+  verifiedBy              String?
+  verificationNotes       String?
+  firstSeenAt             DateTime                          @default(now())
+  lastSeenAt              DateTime                          @default(now())
+  lastCheckedAt           DateTime?
+  sources                 OpportunitySource[]
+  eligibilityCriteria     OpportunityEligibilityCriterion[]
+  reviewItems             ReviewQueueItem[]
+  createdAt               DateTime                          @default(now())
+  updatedAt               DateTime                          @updatedAt
 
   @@index([category])
   @@index([verificationStatus])
@@ -395,6 +410,19 @@ model Opportunity {
   @@index([applicationDeadline])
   @@index([countryCode, stateCode])
   @@map("opportunities")
+}
+
+model OpportunityEligibilityCriterion {
+  id            String      @id @default(uuid())
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  criterionType String      @default("GENERAL")
+  description   String
+  isMandatory   Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+
+  @@index([opportunityId])
+  @@map("opportunity_eligibility_criteria")
 }
 
 model OpportunitySource {

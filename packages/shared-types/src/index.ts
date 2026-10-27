@@ -118,11 +118,72 @@ export enum VerificationStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum DeliveryMode {
+  ONLINE = 'ONLINE',
+  OFFLINE = 'OFFLINE',
+  HYBRID = 'HYBRID',
+  NOT_SPECIFIED = 'NOT_SPECIFIED',
+}
+
 export enum PublicationStatus {
   DRAFT = 'DRAFT',
   PUBLISHED = 'PUBLISHED',
   REJECTED = 'REJECTED',
   ARCHIVED = 'ARCHIVED',
+}
+
+export interface OpportunityListItemDto {
+  id: string;
+  slug: string;
+  title: string;
+  summary?: string;
+  organizer?: string;
+  category: OpportunityCategory;
+  governmentLevel: GovernmentLevel;
+  departmentName?: string;
+  countryCode: string;
+  stateCode?: string;
+  city?: string;
+  deliveryMode: DeliveryMode;
+  benefitType: OpportunityBenefitType;
+  benefitAmountMin?: number;
+  benefitAmountMax?: number;
+  currency: string;
+  applicationDeadline?: Date | string;
+  officialApplicationUrl?: string;
+  verificationStatus: VerificationStatus;
+  publicationStatus: PublicationStatus;
+  startupStages: string[];
+  industries: string[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface OpportunityDetailDto extends OpportunityListItemDto {
+  description?: string;
+  eligibilitySummary?: string;
+  officialNotificationUrl?: string;
+  eventStartAt?: Date | string;
+  eventEndAt?: Date | string;
+  applicationOpenAt?: Date | string;
+  firstSeenAt: Date | string;
+  lastCheckedAt?: Date | string;
+  verifiedAt?: Date | string;
+  verifiedBy?: string;
+  verificationNotes?: string;
+  sources: {
+    id: string;
+    sourceUrl: string;
+    sourceType: string;
+    isPrimarySource: boolean;
+    lastSeenAt: Date | string;
+  }[];
+  eligibilityCriteria?: {
+    id: string;
+    criterionType: string;
+    description: string;
+    isMandatory: boolean;
+  }[];
 }
 
 // -------------------------------------------------------------

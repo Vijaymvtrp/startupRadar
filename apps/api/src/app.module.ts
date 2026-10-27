@@ -11,6 +11,7 @@ import { SourcesModule } from './sources/sources.module';
 import { ChangeDetectionModule } from './change-detection/change-detection.module';
 import { DeduplicationModule } from './deduplication/deduplication.module';
 import { ReviewQueueModule } from './review-queue/review-queue.module';
+import { OpportunitiesModule } from './opportunities/opportunities.module';
 import * as path from 'path';
 
 @Module({
@@ -33,6 +34,7 @@ import * as path from 'path';
     ChangeDetectionModule,
     DeduplicationModule,
     ReviewQueueModule,
+    OpportunitiesModule,
   ],
 })
 export class AppModule {}

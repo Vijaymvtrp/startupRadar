@@ -66,40 +66,47 @@ describe('Milestone 3 - Change Detection, Deduplication & Data Quality (E2E)', (
     expect(changeDetection.computeHash(norm1)).toBe(changeDetection.computeHash(norm2));
   });
 
+  const runId = Date.now();
+  const testTitle = `DST Seed Support Scheme ${runId}`;
+  const testApplyUrl = `https://dst.gov.in/apply/seed-${runId}`;
+  let createdOppId: string;
+
   it('2. Deduplication - should create canonical record for a new announcement', async () => {
     const res = await deduplication.processIngestedItem({
       sourceId: 'src-test-1',
-      sourceUrl: 'https://dst.gov.in/schemes/seed-fund-2026',
-      title: 'DST Seed Support Scheme 2026',
+      sourceUrl: `https://dst.gov.in/schemes/seed-fund-${runId}`,
+      title: testTitle,
       summary: 'Financial assistance for innovative science & technology startups',
       organizer: 'Department of Science and Technology',
-      officialApplicationUrl: 'https://dst.gov.in/apply/seed-2026',
+      officialApplicationUrl: testApplyUrl,
       applicationDeadline: new Date('2026-12-31'),
       category: OpportunityCategory.GRANT_FUNDING,
     });
 
     expect(res.action).toBe('CREATED_CANONICAL_DRAFT');
     expect(res.opportunityId).toBeDefined();
+    createdOppId = res.opportunityId!;
   });
 
   it('3. Deduplication - should link secondary source URL to the same canonical record without duplication', async () => {
     const res = await deduplication.processIngestedItem({
       sourceId: 'src-aggregator-2',
-      sourceUrl: 'https://startup-aggregator.in/opportunities/dst-seed-2026',
-      title: 'DST Seed Support Scheme 2026', // same title
-      officialApplicationUrl: 'https://dst.gov.in/apply/seed-2026', // exact same official apply URL
+      sourceUrl: `https://startup-aggregator.in/opportunities/dst-seed-${runId}`,
+      title: testTitle, // same title
+      officialApplicationUrl: testApplyUrl, // exact same official apply URL
       category: OpportunityCategory.GRANT_FUNDING,
     });
 
     expect(res.action).toBe('LINKED_TO_CANONICAL');
     expect(res.matchReason).toBe('APPLICATION_URL_MATCH');
+    expect(res.opportunityId).toBe(createdOppId);
   });
 
   it('4. Data Quality & Conflicts - should route conflicting deadlines to Review Queue', async () => {
     const res = await deduplication.processIngestedItem({
       sourceId: 'src-aggregator-3',
-      sourceUrl: 'https://another-feed.in/dst-seed-grant',
-      title: 'DST Seed Support Scheme 2026',
+      sourceUrl: `https://another-feed.in/dst-seed-grant-${runId}`,
+      title: testTitle,
       applicationDeadline: new Date('2027-04-15'), // Conflicting deadline (> 1 day difference)
       category: OpportunityCategory.GRANT_FUNDING,
     });
@@ -117,7 +124,7 @@ describe('Milestone 3 - Change Detection, Deduplication & Data Quality (E2E)', (
     const queue = await reviewQueue.listQueue();
     expect(queue.length).toBeGreaterThan(0);
 
-    const targetItem = queue[0];
+    const targetItem = queue.find((q) => q.opportunityId === createdOppId) || queue[0];
     const approveRes = await reviewQueue.approve(targetItem.id, 'Verified via official DST Gazette notification');
 
     expect(approveRes.opportunity.verificationStatus).toBe(VerificationStatus.OFFICIALLY_VERIFIED);
