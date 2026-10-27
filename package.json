@@ -1,0 +1,27 @@
+{
+  "name": "startup-radar-india",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Startup Radar India - Complete Platform for Opportunities, Perks, Co-Founders, and Action Intelligence",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run --workspaces --if-present build",
+    "dev:api": "npm run --workspace=@startup-radar/api start:dev",
+    "dev:web": "npm run --workspace=@startup-radar/web dev",
+    "lint": "npm run --workspaces --if-present lint",
+    "test": "npm run --workspaces --if-present test"
+  },
+  "keywords": [
+    "startup",
+    "radar",
+    "india",
+    "opportunities",
+    "perks",
+    "co-founder"
+  ],
+  "author": "",
+  "license": "UNLICENSED"
+}

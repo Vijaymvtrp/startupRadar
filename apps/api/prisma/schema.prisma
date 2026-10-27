@@ -1,0 +1,187 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  PUBLIC_VISITOR
+  FOUNDER
+  ORGANIZER
+  ADMIN
+}
+
+enum StartupStage {
+  EXPLORING_IDEA
+  RESEARCH
+  PROTOTYPE
+  MVP
+  FIRST_CUSTOMERS
+  REVENUE_GENERATING
+  SCALING
+}
+
+enum BusinessModel {
+  B2B
+  B2C
+  D2C
+  MARKETPLACE
+  MANUFACTURING
+  SERVICES
+  SUBSCRIPTION
+  DEEP_TECH_RESEARCH
+  SOCIAL_ENTERPRISE
+  OTHER
+}
+
+enum IndustrySector {
+  AGRICULTURE
+  HEALTHCARE_LIFESCIENCES
+  MANUFACTURING
+  FOOD_BEVERAGE
+  EDUCATION_EDTECH
+  RETAIL_ECOMMERCE
+  CONSTRUCTION_REAL_ESTATE
+  LOGISTICS_SUPPLY_CHAIN
+  CLEAN_ENERGY_CLIMATE
+  SOFTWARE_IT
+  BIOTECH_PHARMA
+  FINTECH
+  DEFENSE_AEROSPACE
+  MEDIA_ENTERTAINMENT
+  CONSUMER_GOODS
+  SERVICES_CONSULTING
+  OTHER
+}
+
+enum StartupNeed {
+  FUNDING
+  GRANTS
+  TENDERS
+  INCUBATION
+  CLOUD_CREDITS
+  SOFTWARE_TOOLS
+  FACILITIES_EQUIPMENT
+  TESTING_CERTIFICATION
+  CO_FOUNDER
+  PILOT_OPPORTUNITIES
+  CUSTOMERS
+  PARTNERSHIPS
+  SUPPLIERS
+  DISTRIBUTION
+  EXPORT_SUPPORT
+  OTHER
+}
+
+enum VerificationStatus {
+  PENDING
+  NEEDS_REVIEW
+  OFFICIALLY_VERIFIED
+  UNABLE_TO_VERIFY
+  EXPIRED
+  CLOSED
+  CANCELLED
+}
+
+enum PublicationStatus {
+  DRAFT
+  PUBLISHED
+  REJECTED
+  ARCHIVED
+}
+
+model User {
+  id           String          @id @default(uuid())
+  email        String          @unique
+  passwordHash String
+  role         UserRole        @default(FOUNDER)
+  isActive     Boolean         @default(true)
+  profile      UserProfile?
+  startup      StartupProfile?
+  auditLogs    AuditLog[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@map("users")
+}
+
+model UserProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName  String
+  location  String?
+  bio       String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+model StartupProfile {
+  id                  String                    @id @default(uuid())
+  userId              String                    @unique
+  user                User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startupName         String?
+  tagline             String?
+  description         String?
+  primaryIndustry     IndustrySector
+  businessModel       BusinessModel             @default(B2B)
+  stage               StartupStage              @default(EXPLORING_IDEA)
+  countryCode         String                    @default("IN")
+  stateCode           String?
+  city                String?
+  isRegisteredCompany Boolean                   @default(false)
+  dpiitRecognized     Boolean                   @default(false)
+  msmeRegistered      Boolean                   @default(false)
+  teamSizeBand        String?
+  secondaryIndustries StartupProfileIndustry[]
+  needs               StartupProfileNeed[]
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+
+  @@index([primaryIndustry])
+  @@index([stage])
+  @@index([countryCode, stateCode])
+  @@map("startup_profiles")
+}
+
+model StartupProfileIndustry {
+  id               String         @id @default(uuid())
+  startupProfileId String
+  startupProfile   StartupProfile @relation(fields: [startupProfileId], references: [id], onDelete: Cascade)
+  industry         IndustrySector
+
+  @@unique([startupProfileId, industry])
+  @@map("startup_profile_industries")
+}
+
+model StartupProfileNeed {
+  id               String         @id @default(uuid())
+  startupProfileId String
+  startupProfile   StartupProfile @relation(fields: [startupProfileId], references: [id], onDelete: Cascade)
+  need             StartupNeed
+
+  @@unique([startupProfileId, need])
+  @@map("startup_profile_needs")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  targetType String
+  targetId   String?
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
+}
