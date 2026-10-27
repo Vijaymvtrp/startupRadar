@@ -636,5 +636,148 @@ DROP CONSTRAINT IF EXISTS "perk_sources_programId_fkey",
 ADD CONSTRAINT "perk_sources_programId_fkey" 
 FOREIGN KEY ("programId") REFERENCES "startup_perk_programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- -------------------------------------------------------------
+-- Milestone 6: Saved Items, Application Tracking & Alerts
+-- -------------------------------------------------------------
+
+CREATE TYPE "AlertFrequency" AS ENUM (
+    'INSTANT',
+    'DAILY',
+    'WEEKLY'
+);
+
+CREATE TYPE "ApplicationStatus" AS ENUM (
+    'SAVED',
+    'APPLYING',
+    'APPLIED',
+    'UNDER_REVIEW',
+    'INTERVIEW',
+    'OFFERED',
+    'REJECTED',
+    'WITHDRAWN'
+);
+
+CREATE TABLE IF NOT EXISTS "user_preferences" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "emailAlertsEnabled" BOOLEAN NOT NULL DEFAULT true,
+    "alertFrequency" "AlertFrequency" NOT NULL DEFAULT 'DAILY',
+    "deadlineAlertDays" INTEGER[] NOT NULL DEFAULT ARRAY[7, 2]::INTEGER[],
+    "notifyStatusChanges" BOOLEAN NOT NULL DEFAULT true,
+    "notifyNewOpportunities" BOOLEAN NOT NULL DEFAULT true,
+    "notifyPerkExpirations" BOOLEAN NOT NULL DEFAULT true,
+    "interestedCategories" "OpportunityCategory"[] NOT NULL DEFAULT ARRAY[]::"OpportunityCategory"[],
+    "interestedIndustries" "IndustrySector"[] NOT NULL DEFAULT ARRAY[]::"IndustrySector"[],
+    "unsubscribedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "user_preferences_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "saved_opportunities" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "opportunityId" TEXT NOT NULL,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "saved_opportunities_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "saved_perks" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "perkProgramId" TEXT NOT NULL,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "saved_perks_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "application_tracking" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "opportunityId" TEXT NOT NULL,
+    "status" "ApplicationStatus" NOT NULL DEFAULT 'APPLIED',
+    "appliedAt" TIMESTAMP(3),
+    "followUpDate" TIMESTAMP(3),
+    "privateNotes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "application_tracking_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "user_alert_notifications" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "targetType" TEXT NOT NULL,
+    "targetId" TEXT NOT NULL,
+    "alertKey" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'SENT',
+    "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "user_alert_notifications_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "user_preferences_userId_key" ON "user_preferences"("userId");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "saved_opportunities_userId_opportunityId_key" ON "saved_opportunities"("userId", "opportunityId");
+CREATE INDEX IF NOT EXISTS "saved_opportunities_userId_idx" ON "saved_opportunities"("userId");
+CREATE INDEX IF NOT EXISTS "saved_opportunities_opportunityId_idx" ON "saved_opportunities"("opportunityId");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "saved_perks_userId_perkProgramId_key" ON "saved_perks"("userId", "perkProgramId");
+CREATE INDEX IF NOT EXISTS "saved_perks_userId_idx" ON "saved_perks"("userId");
+CREATE INDEX IF NOT EXISTS "saved_perks_perkProgramId_idx" ON "saved_perks"("perkProgramId");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "application_tracking_userId_opportunityId_key" ON "application_tracking"("userId", "opportunityId");
+CREATE INDEX IF NOT EXISTS "application_tracking_userId_idx" ON "application_tracking"("userId");
+CREATE INDEX IF NOT EXISTS "application_tracking_status_idx" ON "application_tracking"("status");
+CREATE INDEX IF NOT EXISTS "application_tracking_followUpDate_idx" ON "application_tracking"("followUpDate");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "user_alert_notifications_userId_alertKey_key" ON "user_alert_notifications"("userId", "alertKey");
+CREATE INDEX IF NOT EXISTS "user_alert_notifications_userId_idx" ON "user_alert_notifications"("userId");
+
+ALTER TABLE "user_preferences"
+DROP CONSTRAINT IF EXISTS "user_preferences_userId_fkey",
+ADD CONSTRAINT "user_preferences_userId_fkey"
+FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "saved_opportunities"
+DROP CONSTRAINT IF EXISTS "saved_opportunities_userId_fkey",
+ADD CONSTRAINT "saved_opportunities_userId_fkey"
+FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "saved_opportunities"
+DROP CONSTRAINT IF EXISTS "saved_opportunities_opportunityId_fkey",
+ADD CONSTRAINT "saved_opportunities_opportunityId_fkey"
+FOREIGN KEY ("opportunityId") REFERENCES "opportunities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "saved_perks"
+DROP CONSTRAINT IF EXISTS "saved_perks_userId_fkey",
+ADD CONSTRAINT "saved_perks_userId_fkey"
+FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "saved_perks"
+DROP CONSTRAINT IF EXISTS "saved_perks_perkProgramId_fkey",
+ADD CONSTRAINT "saved_perks_perkProgramId_fkey"
+FOREIGN KEY ("perkProgramId") REFERENCES "startup_perk_programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "application_tracking"
+DROP CONSTRAINT IF EXISTS "application_tracking_userId_fkey",
+ADD CONSTRAINT "application_tracking_userId_fkey"
+FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "application_tracking"
+DROP CONSTRAINT IF EXISTS "application_tracking_opportunityId_fkey",
+ADD CONSTRAINT "application_tracking_opportunityId_fkey"
+FOREIGN KEY ("opportunityId") REFERENCES "opportunities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "user_alert_notifications"
+DROP CONSTRAINT IF EXISTS "user_alert_notifications_userId_fkey",
+ADD CONSTRAINT "user_alert_notifications_userId_fkey"
+FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
 
 

@@ -143,11 +143,16 @@ model User {
   passwordHash String
   role         UserRole        @default(FOUNDER)
   isActive     Boolean         @default(true)
-  profile      UserProfile?
-  startup      StartupProfile?
-  auditLogs    AuditLog[]
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  profile             UserProfile?
+  startup             StartupProfile?
+  preferences         UserPreference?
+  savedOpportunities  SavedOpportunity[]
+  savedPerks          SavedPerk[]
+  trackedApplications ApplicationTracking[]
+  notifications       UserAlertNotification[]
+  auditLogs           AuditLog[]
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
 
   @@map("users")
 }
@@ -400,6 +405,8 @@ model Opportunity {
   lastCheckedAt           DateTime?
   sources                 OpportunitySource[]
   eligibilityCriteria     OpportunityEligibilityCriterion[]
+  savedByUsers            SavedOpportunity[]
+  trackedApplications     ApplicationTracking[]
   reviewItems             ReviewQueueItem[]
   createdAt               DateTime                          @default(now())
   updatedAt               DateTime                          @updatedAt
@@ -523,6 +530,7 @@ model StartupPerkProgram {
   verificationNotes   String?
   eligibilityCriteria PerkEligibilityCriterion[]
   sources             PerkSource[]
+  savedByUsers        SavedPerk[]
   createdAt           DateTime                    @default(now())
   updatedAt           DateTime                    @updatedAt
 
@@ -560,6 +568,111 @@ model PerkSource {
   @@unique([programId, sourceUrl])
   @@index([sourceUrl])
   @@map("perk_sources")
+}
+
+// -------------------------------------------------------------
+// Milestone 6: Saved Items, Application Tracking & Alerts
+// -------------------------------------------------------------
+
+enum AlertFrequency {
+  INSTANT
+  DAILY
+  WEEKLY
+}
+
+enum ApplicationStatus {
+  SAVED
+  APPLYING
+  APPLIED
+  UNDER_REVIEW
+  INTERVIEW
+  OFFERED
+  REJECTED
+  WITHDRAWN
+}
+
+model UserPreference {
+  id                     String                @id @default(uuid())
+  userId                 String                @unique
+  user                   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailAlertsEnabled     Boolean               @default(true)
+  alertFrequency         AlertFrequency        @default(DAILY)
+  deadlineAlertDays      Int[]                 @default([7, 2])
+  notifyStatusChanges    Boolean               @default(true)
+  notifyNewOpportunities Boolean               @default(true)
+  notifyPerkExpirations  Boolean               @default(true)
+  interestedCategories   OpportunityCategory[] @default([])
+  interestedIndustries   IndustrySector[]      @default([])
+  unsubscribedAt         DateTime?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+
+  @@map("user_preferences")
+}
+
+model SavedOpportunity {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  notes         String?
+  createdAt     DateTime    @default(now())
+
+  @@unique([userId, opportunityId])
+  @@index([userId])
+  @@index([opportunityId])
+  @@map("saved_opportunities")
+}
+
+model SavedPerk {
+  id            String             @id @default(uuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  perkProgramId String
+  perkProgram   StartupPerkProgram @relation(fields: [perkProgramId], references: [id], onDelete: Cascade)
+  notes         String?
+  createdAt     DateTime           @default(now())
+
+  @@unique([userId, perkProgramId])
+  @@index([userId])
+  @@index([perkProgramId])
+  @@map("saved_perks")
+}
+
+model ApplicationTracking {
+  id            String            @id @default(uuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  opportunityId String
+  opportunity   Opportunity       @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  status        ApplicationStatus @default(APPLIED)
+  appliedAt     DateTime?
+  followUpDate  DateTime?
+  privateNotes  String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([userId, opportunityId])
+  @@index([userId])
+  @@index([status])
+  @@index([followUpDate])
+  @@map("application_tracking")
+}
+
+model UserAlertNotification {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType String
+  targetId   String
+  alertKey   String
+  status     String   @default("SENT")
+  sentAt     DateTime @default(now())
+
+  @@unique([userId, alertKey])
+  @@index([userId])
+  @@map("user_alert_notifications")
 }
 
 

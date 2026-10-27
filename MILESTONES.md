@@ -85,7 +85,30 @@
     - `/perks` — Perks Directory with category pills (Cloud Credits, AI Credits, Dev Tools, SaaS Discounts), search, and value highlights.
     - `/perks/[slug]` — Canonical detail view with "Apply on Official Portal" CTA, terms guidelines, and data integrity banner.
   - Tests: `apps/api/test/milestone5.e2e-spec.ts` (6/6 passed).
-  - Full Sequential Suite: **28/28 passed across Milestones 1-5**.
+  - Full Sequential Suite: 28/28 passed across Milestones 1-5.
+
+### Milestone 6 — Founder Accounts, Saved Items & Deadline Alerts
+- **Status:** Completed & Live Verified
+- **Key Deliverables:**
+  - DB Schema: Added `user_preferences`, `saved_opportunities`, `saved_perks`, `application_tracking`, `user_alert_notifications`, and enums `AlertFrequency`, `ApplicationStatus`.
+  - Saved Opportunities & Perks APIs:
+    - `GET /api/v1/me/saved-opportunities`, `POST /api/v1/me/saved-opportunities`, `DELETE /api/v1/me/saved-opportunities/:opportunityId` (idempotent duplicate prevention).
+    - `GET /api/v1/me/saved-perks`, `POST /api/v1/me/saved-perks`, `DELETE /api/v1/me/saved-perks/:perkProgramId`.
+  - Private Application Tracking API:
+    - `GET /api/v1/me/application-tracking`, `POST /api/v1/me/application-tracking`, `PATCH /api/v1/me/application-tracking/:id`, `DELETE /api/v1/me/application-tracking/:id`.
+    - Strict user ownership isolation: User B cannot access or update User A's private notes (403 Forbidden).
+  - Notification Preferences & Unsubscribe:
+    - `GET /api/v1/me/preferences`, `PUT /api/v1/me/preferences`.
+  - Deadline Alerts Engine:
+    - `DeadlineAlertsService` with approaching deadline detection (7-day / 48-hour windows), follow-up milestone reminders, cryptographic alert deduplication via `user_alert_notifications`, and unsubscribe alert suppression.
+    - `POST /api/v1/admin/alerts/process-deadlines`.
+  - Account Deletion & GDPR Privacy:
+    - `DELETE /api/v1/me/account` (cascading personal data cleanup).
+  - Web UI:
+    - `/dashboard/saved` — Tabbed saved opportunities and perks with deadline badges and alert toggle.
+    - `/dashboard/applications` — Confidential application tracker with status stages, private notes editor, and official portal CTAs.
+  - Tests: `apps/api/test/milestone6.e2e-spec.ts` (6/6 passed).
+  - Full Sequential Suite: **34/34 passed across Milestones 1-6 (100%)**.
 
 ---
 

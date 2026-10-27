@@ -13,6 +13,7 @@ import { DeduplicationModule } from './deduplication/deduplication.module';
 import { ReviewQueueModule } from './review-queue/review-queue.module';
 import { OpportunitiesModule } from './opportunities/opportunities.module';
 import { PerksModule } from './perks/perks.module';
+import { SavedItemsModule } from './saved-items/saved-items.module';
 import * as path from 'path';
 
 @Module({
@@ -37,6 +38,7 @@ import * as path from 'path';
     ReviewQueueModule,
     OpportunitiesModule,
     PerksModule,
+    SavedItemsModule,
   ],
 })
 export class AppModule {}

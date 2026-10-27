@@ -435,3 +435,97 @@ export interface SourceTestResult {
   errorMessage?: string;
 }
 
+// -------------------------------------------------------------
+// 10. Milestone 6: Saved Items, Application Tracking & Alerts
+// -------------------------------------------------------------
+export enum AlertFrequency {
+  INSTANT = 'INSTANT',
+  DAILY = 'DAILY',
+  WEEKLY = 'WEEKLY',
+}
+
+export enum ApplicationStatus {
+  SAVED = 'SAVED',
+  APPLYING = 'APPLYING',
+  APPLIED = 'APPLIED',
+  UNDER_REVIEW = 'UNDER_REVIEW',
+  INTERVIEW = 'INTERVIEW',
+  OFFERED = 'OFFERED',
+  REJECTED = 'REJECTED',
+  WITHDRAWN = 'WITHDRAWN',
+}
+
+export interface SavedOpportunityDto {
+  id: string;
+  userId: string;
+  opportunityId: string;
+  notes?: string;
+  createdAt: Date | string;
+  opportunity?: OpportunityListItemDto;
+}
+
+export interface SavedPerkDto {
+  id: string;
+  userId: string;
+  perkProgramId: string;
+  notes?: string;
+  createdAt: Date | string;
+  perkProgram?: PerkListItemDto;
+}
+
+export interface ApplicationTrackingDto {
+  id: string;
+  userId: string;
+  opportunityId: string;
+  status: ApplicationStatus;
+  appliedAt?: Date | string;
+  followUpDate?: Date | string;
+  privateNotes?: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  opportunity?: OpportunityListItemDto;
+}
+
+export interface CreateApplicationTrackingInput {
+  opportunityId: string;
+  status?: ApplicationStatus;
+  appliedAt?: Date | string;
+  followUpDate?: Date | string;
+  privateNotes?: string;
+}
+
+export interface UpdateApplicationTrackingInput {
+  status?: ApplicationStatus;
+  appliedAt?: Date | string;
+  followUpDate?: Date | string;
+  privateNotes?: string;
+}
+
+export interface UserPreferenceDto {
+  id: string;
+  userId: string;
+  emailAlertsEnabled: boolean;
+  alertFrequency: AlertFrequency;
+  deadlineAlertDays: number[];
+  notifyStatusChanges: boolean;
+  notifyNewOpportunities: boolean;
+  notifyPerkExpirations: boolean;
+  interestedCategories: OpportunityCategory[];
+  interestedIndustries: IndustrySector[];
+  unsubscribedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface UpdateUserPreferenceInput {
+  emailAlertsEnabled?: boolean;
+  alertFrequency?: AlertFrequency;
+  deadlineAlertDays?: number[];
+  notifyStatusChanges?: boolean;
+  notifyNewOpportunities?: boolean;
+  notifyPerkExpirations?: boolean;
+  interestedCategories?: OpportunityCategory[];
+  interestedIndustries?: IndustrySector[];
+  isUnsubscribed?: boolean;
+}
+
