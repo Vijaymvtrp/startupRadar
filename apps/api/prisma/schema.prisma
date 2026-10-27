@@ -154,6 +154,9 @@ model User {
   blockedUsers        BlockedUser[]           @relation("blockedUsers")
   blockedBy           BlockedUser[]           @relation("blockedBy")
   profileReports      ProfileReport[]
+  recommendations     Recommendation[]
+  recommendationRuns  RecommendationRun[]
+  feedbacks           RecommendationFeedbackRecord[]
   auditLogs           AuditLog[]
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
@@ -411,6 +414,7 @@ model Opportunity {
   eligibilityCriteria     OpportunityEligibilityCriterion[]
   savedByUsers            SavedOpportunity[]
   trackedApplications     ApplicationTracking[]
+  recommendations         Recommendation[]
   reviewItems             ReviewQueueItem[]
   createdAt               DateTime                          @default(now())
   updatedAt               DateTime                          @updatedAt
@@ -535,6 +539,7 @@ model StartupPerkProgram {
   eligibilityCriteria PerkEligibilityCriterion[]
   sources             PerkSource[]
   savedByUsers        SavedPerk[]
+  recommendations     Recommendation[]
   createdAt           DateTime                    @default(now())
   updatedAt           DateTime                    @updatedAt
 
@@ -827,6 +832,94 @@ model ProfileReport {
 
   @@index([status])
   @@map("profile_reports")
+}
+
+// -------------------------------------------------------------
+// Milestone 8: Startup Intelligence & Action Engine
+// -------------------------------------------------------------
+
+enum EligibilityAssessment {
+  LIKELY_MATCH
+  POTENTIAL_ISSUE
+  NEEDS_INFORMATION
+  UNKNOWN
+}
+
+enum RecommendationTargetType {
+  OPPORTUNITY
+  PERK
+}
+
+enum RecommendationFeedback {
+  RELEVANT
+  NOT_RELEVANT
+  DISMISSED
+  APPLIED
+}
+
+model RecommendationRun {
+  id                     String           @id @default(uuid())
+  userId                 String
+  user                   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  algorithmVersion       String           @default("v1.0-deterministic")
+  opportunitiesEvaluated Int              @default(0)
+  perksEvaluated         Int              @default(0)
+  recommendationsCount   Int              @default(0)
+  status                 String           @default("SUCCESS")
+  recommendations        Recommendation[]
+  createdAt              DateTime         @default(now())
+
+  @@index([userId])
+  @@map("recommendation_runs")
+}
+
+model Recommendation {
+  id                String                         @id @default(uuid())
+  runId             String?
+  run               RecommendationRun?             @relation(fields: [runId], references: [id], onDelete: SetNull)
+  userId            String
+  user              User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType        RecommendationTargetType
+  targetId          String
+  opportunityId     String?
+  opportunity       Opportunity?                   @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  perkProgramId     String?
+  perkProgram       StartupPerkProgram?            @relation(fields: [perkProgramId], references: [id], onDelete: Cascade)
+  relevanceScore    Int                            @default(50)
+  assessment        EligibilityAssessment          @default(LIKELY_MATCH)
+  reasonCodes       String[]                       @default([])
+  rationale         String
+  missingData       String[]                       @default([])
+  suggestedNextStep String
+  algorithmVersion  String                         @default("v1.0-deterministic")
+  feedback          RecommendationFeedback?
+  isDismissed       Boolean                        @default(false)
+  isSaved           Boolean                        @default(false)
+  feedbackRecords   RecommendationFeedbackRecord[]
+  createdAt         DateTime                       @default(now())
+  updatedAt         DateTime                       @updatedAt
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId])
+  @@index([targetType])
+  @@index([relevanceScore])
+  @@index([assessment])
+  @@map("recommendations")
+}
+
+model RecommendationFeedbackRecord {
+  id               String                 @id @default(uuid())
+  userId           String
+  user             User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recommendationId String
+  recommendation   Recommendation         @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  feedback         RecommendationFeedback
+  comments         String?
+  createdAt        DateTime               @default(now())
+
+  @@index([userId])
+  @@index([recommendationId])
+  @@map("recommendation_feedback")
 }
 
 

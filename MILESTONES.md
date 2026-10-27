@@ -4,8 +4,8 @@
 **Specification:** [startup_radar_india_complete_spec_v3.md](./startup_radar_india_complete_spec_v3.md)  
 **Database:** Supabase PostgreSQL (`aws-0-ap-south-1.pooler.supabase.com:5432/postgres`)  
 **Cache / Queue:** Upstash Serverless Redis (`rediss://optimum-starfish-132990.upstash.io:6379`)  
-**Current Status:** **5 / 9 Milestones Completed (55% Finished)**  
-**Automated Tests:** **28 / 28 E2E Tests Passing (100%)**  
+**Current Status:** **8 / 9 Milestones Completed (89% Finished)**  
+**Automated Tests:** **46 / 46 E2E Tests Passing (100% Green)**  
 **Last Updated:** 27 October 2026
 
 ---
@@ -18,11 +18,11 @@
 | **2** | **Source Registry & Background Ingestion Pipeline** | SSRF protection guard, RSS/Sitemap/HTML Cheerio connectors, BullMQ on Upstash Redis, Sources Management Admin API & Web UI. | ✅ **Completed** | `milestone2.e2e-spec.ts` (6/6 Passed) | `e72dcf4` |
 | **3** | **Change Detection, Deduplication & Review Queue** | ETag/Last-Modified, HTML sanitization, SHA-256 hash hashing, Canonical draft creation, secondary source linking, Human Review Queue for conflicts, selective LLM extractor. | ✅ **Completed** | `milestone3.e2e-spec.ts` (5/5 Passed) | `730a420` |
 | **4** | **Startup Opportunities MVP** | Public Opportunity Search with facet filters (category, stage, industry, central/state gov level, deadline status), Canonical slug detail view with source provenance, Admin Official Gazette Verification & Rejection workflows, Next.js directory & detail pages. | ✅ **Completed** | `milestone4.e2e-spec.ts` (6/6 Passed) | `7c9e10f` |
-| **5** | **Startup Perks & Credits MVP** | Official startup credits directory (Cloud, AI/API, Developer tools, SaaS discounts), eligibility criteria checklist, provider verification, Next.js `/perks` directory & detail pages. | ✅ **Completed** | `milestone5.e2e-spec.ts` (6/6 Passed) | Pending Commit |
-| **6** | **Founder Accounts, Saved Items & Alerts** | User bookmarks, deadline email notifications, private application status tracking, preference controls. | ⏳ **Next Up** | `milestone6.e2e-spec.ts` | Planned |
-| **7** | **Co-Founder Matching MVP** | Founder profiles, skills sought/offered, commitment & stage preferences, mutual-consent connection requests, anti-abuse & privacy controls. | 📋 Pending | `milestone7.e2e-spec.ts` | Planned |
-| **8** | **Startup Intelligence & Action Engine** | Deterministic profile-based opportunity/perk recommendations, explainable match rationale, missing-eligibility flags, next-step suggestions. | 📋 Pending | `milestone8.e2e-spec.ts` | Planned |
-| **9** | **Production Readiness & Pilot Measurement** | Rate limiting, security audits, source freshness metrics, Docker/Cloud deployment configuration. | 📋 Pending | `milestone9.e2e-spec.ts` | Planned |
+| **5** | **Startup Perks & Credits MVP** | Official startup credits directory (Cloud, AI/API, Developer tools, SaaS discounts), eligibility criteria checklist, provider verification, Next.js `/perks` directory & detail pages. | ✅ **Completed** | `milestone5.e2e-spec.ts` (6/6 Passed) | `3df5745` |
+| **6** | **Founder Accounts, Saved Items & Alerts** | User bookmarks, deadline email notifications, private application status tracking, preference controls. | ✅ **Completed** | `milestone6.e2e-spec.ts` (6/6 Passed) | `5ba495e` |
+| **7** | **Co-Founder Matching MVP** | Founder profiles, skills sought/offered, commitment & stage preferences, mutual-consent connection requests, anti-abuse & privacy controls. | ✅ **Completed** | `milestone7.e2e-spec.ts` (6/6 Passed) | `c7d5c5c` |
+| **8** | **Startup Intelligence & Action Engine** | Deterministic profile-based opportunity/perk recommendations, explainable match rationale, missing-eligibility flags, next-step suggestions, founder feedback & dismissal controls. | ✅ **Completed** | `milestone8.e2e-spec.ts` (6/6 Passed) | Pending Commit |
+| **9** | **Production Readiness & Pilot Measurement** | Rate limiting, security audits, source freshness metrics, Docker/Cloud deployment configuration. | ⏳ **Next Up** | `milestone9.e2e-spec.ts` | Planned |
 
 ---
 
@@ -130,12 +130,32 @@
   - Tests: `apps/api/test/milestone7.e2e-spec.ts` (6/6 passed).
   - Full Sequential Suite: **40/40 passed across Milestones 1-7 (100% Green)**.
 
+### Milestone 8 — Startup Intelligence & Action Engine MVP
+- **Status:** Completed & Live Verified
+- **Key Deliverables:**
+  - DB Schema: Added `recommendation_runs`, `recommendations`, `recommendation_feedback` tables and enums `EligibilityAssessment` (`LIKELY_MATCH`, `POTENTIAL_ISSUE`, `NEEDS_INFORMATION`, `NOT_ELIGIBLE`), `RecommendationTargetType` (`OPPORTUNITY`, `PERK`), `RecommendationFeedback` (`RELEVANT`, `NOT_RELEVANT`, `SAVED`, `DISMISSED`). Live Supabase DB migrated and synchronized with `database/schema.sql`.
+  - Deterministic Recommendation Engine (`IntelligenceService`):
+    - Multi-factor deterministic scoring rule (0–100%) evaluating primary sector match (+30), secondary sector match (+20), startup stage fit (+25), declared need alignment (+20/35), and eligibility checklists.
+    - Zero hallucination: Never claims guaranteed approval; provides transparent rationale strings for each match factor.
+    - Missing Proof Detection: Automatically identifies prerequisites (e.g., DPIIT recognition, MSME Udyam registration, Incorporation) and flags them as `NEEDS_INFORMATION` with clear, actionable preparation steps.
+  - Intelligence APIs:
+    - `POST /api/v1/recommendations/generate` — Evaluates canonical published opportunities and active perk programs against the founder's startup profile.
+    - `GET /api/v1/recommendations` — Lists prioritized recommendations with target metadata, benefit highlights, and rationale.
+    - `GET /api/v1/recommendations/summary` — Returns dashboard overview with likely matches, needs-info count, missing profile prerequisites, and top next-step actions.
+    - `POST /api/v1/recommendations/:id/feedback` — Captures founder relevance feedback and comments to evaluate recommendation accuracy.
+    - `POST /api/v1/recommendations/:id/dismiss` — Hides dismissed recommendations from the active feed.
+  - Web UI:
+    - `/dashboard` — Founder Intelligence & Action Dashboard with KPI counters, Urgent Action Items banner, Missing Prerequisites checklist, and Opportunity & Perk cards with feedback and dismiss controls.
+  - Tests: `apps/api/test/milestone8.e2e-spec.ts` (6/6 passed).
+  - Full Sequential Suite: **46/46 passed across Milestones 1-8 (100% Green)**.
+
 ---
 
 ## How to Run Tests
 From the root directory:
 ```powershell
 # Run all Milestone E2E tests in sequence
-npm.cmd --prefix apps/api run test:e2e -- --runInBand milestone
+npm.cmd --prefix apps/api run test:e2e -- --runInBand milestone1 milestone2 milestone3 milestone4 milestone5 milestone6 milestone7 milestone8
 ```
+
 

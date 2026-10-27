@@ -967,5 +967,122 @@ DROP CONSTRAINT IF EXISTS "profile_reports_reportedProfileId_fkey",
 ADD CONSTRAINT "profile_reports_reportedProfileId_fkey"
 FOREIGN KEY ("reportedProfileId") REFERENCES "founder_profiles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- -------------------------------------------------------------
+-- Milestone 8: Startup Intelligence & Action Engine
+-- -------------------------------------------------------------
+
+CREATE TYPE "EligibilityAssessment" AS ENUM (
+    'LIKELY_MATCH',
+    'POTENTIAL_ISSUE',
+    'NEEDS_INFORMATION',
+    'UNKNOWN'
+);
+
+CREATE TYPE "RecommendationTargetType" AS ENUM (
+    'OPPORTUNITY',
+    'PERK'
+);
+
+CREATE TYPE "RecommendationFeedback" AS ENUM (
+    'RELEVANT',
+    'NOT_RELEVANT',
+    'DISMISSED',
+    'APPLIED'
+);
+
+CREATE TABLE IF NOT EXISTS "recommendation_runs" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "algorithmVersion" TEXT NOT NULL DEFAULT 'v1.0-deterministic',
+    "opportunitiesEvaluated" INTEGER NOT NULL DEFAULT 0,
+    "perksEvaluated" INTEGER NOT NULL DEFAULT 0,
+    "recommendationsCount" INTEGER NOT NULL DEFAULT 0,
+    "status" TEXT NOT NULL DEFAULT 'SUCCESS',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "recommendation_runs_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "recommendations" (
+    "id" TEXT NOT NULL,
+    "runId" TEXT,
+    "userId" TEXT NOT NULL,
+    "targetType" "RecommendationTargetType" NOT NULL,
+    "targetId" TEXT NOT NULL,
+    "opportunityId" TEXT,
+    "perkProgramId" TEXT,
+    "relevanceScore" INTEGER NOT NULL DEFAULT 50,
+    "assessment" "EligibilityAssessment" NOT NULL DEFAULT 'LIKELY_MATCH',
+    "reasonCodes" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+    "rationale" TEXT NOT NULL,
+    "missingData" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+    "suggestedNextStep" TEXT NOT NULL,
+    "algorithmVersion" TEXT NOT NULL DEFAULT 'v1.0-deterministic',
+    "feedback" "RecommendationFeedback",
+    "isDismissed" BOOLEAN NOT NULL DEFAULT false,
+    "isSaved" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "recommendations_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "recommendation_feedback" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "recommendationId" TEXT NOT NULL,
+    "feedback" "RecommendationFeedback" NOT NULL,
+    "comments" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "recommendation_feedback_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX IF NOT EXISTS "recommendation_runs_userId_idx" ON "recommendation_runs"("userId");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "recommendations_userId_targetType_targetId_key" ON "recommendations"("userId", "targetType", "targetId");
+CREATE INDEX IF NOT EXISTS "recommendations_userId_idx" ON "recommendations"("userId");
+CREATE INDEX IF NOT EXISTS "recommendations_targetType_idx" ON "recommendations"("targetType");
+CREATE INDEX IF NOT EXISTS "recommendations_relevanceScore_idx" ON "recommendations"("relevanceScore");
+CREATE INDEX IF NOT EXISTS "recommendations_assessment_idx" ON "recommendations"("assessment");
+
+CREATE INDEX IF NOT EXISTS "recommendation_feedback_userId_idx" ON "recommendation_feedback"("userId");
+CREATE INDEX IF NOT EXISTS "recommendation_feedback_recommendationId_idx" ON "recommendation_feedback"("recommendationId");
+
+ALTER TABLE "recommendation_runs"
+DROP CONSTRAINT IF EXISTS "recommendation_runs_userId_fkey",
+ADD CONSTRAINT "recommendation_runs_userId_fkey"
+FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "recommendations"
+DROP CONSTRAINT IF EXISTS "recommendations_runId_fkey",
+ADD CONSTRAINT "recommendations_runId_fkey"
+FOREIGN KEY ("runId") REFERENCES "recommendation_runs"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE "recommendations"
+DROP CONSTRAINT IF EXISTS "recommendations_userId_fkey",
+ADD CONSTRAINT "recommendations_userId_fkey"
+FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "recommendations"
+DROP CONSTRAINT IF EXISTS "recommendations_opportunityId_fkey",
+ADD CONSTRAINT "recommendations_opportunityId_fkey"
+FOREIGN KEY ("opportunityId") REFERENCES "opportunities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "recommendations"
+DROP CONSTRAINT IF EXISTS "recommendations_perkProgramId_fkey",
+ADD CONSTRAINT "recommendations_perkProgramId_fkey"
+FOREIGN KEY ("perkProgramId") REFERENCES "startup_perk_programs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "recommendation_feedback"
+DROP CONSTRAINT IF EXISTS "recommendation_feedback_userId_fkey",
+ADD CONSTRAINT "recommendation_feedback_userId_fkey"
+FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "recommendation_feedback"
+DROP CONSTRAINT IF EXISTS "recommendation_feedback_recommendationId_fkey",
+ADD CONSTRAINT "recommendation_feedback_recommendationId_fkey"
+FOREIGN KEY ("recommendationId") REFERENCES "recommendations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
 
 

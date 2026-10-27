@@ -15,6 +15,7 @@ import { OpportunitiesModule } from './opportunities/opportunities.module';
 import { PerksModule } from './perks/perks.module';
 import { SavedItemsModule } from './saved-items/saved-items.module';
 import { CoFounderModule } from './co-founder/co-founder.module';
+import { IntelligenceModule } from './intelligence/intelligence.module';
 import * as path from 'path';
 
 @Module({
@@ -41,6 +42,7 @@ import * as path from 'path';
     PerksModule,
     SavedItemsModule,
     CoFounderModule,
+    IntelligenceModule,
   ],
 })
 export class AppModule {}

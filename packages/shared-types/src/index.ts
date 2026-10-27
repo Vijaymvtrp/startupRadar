@@ -468,18 +468,56 @@ export enum EligibilityAssessment {
   UNKNOWN = 'UNKNOWN',
 }
 
-export interface ActionRecommendation {
+export enum RecommendationTargetType {
+  OPPORTUNITY = 'OPPORTUNITY',
+  PERK = 'PERK',
+}
+
+export enum RecommendationFeedback {
+  RELEVANT = 'RELEVANT',
+  NOT_RELEVANT = 'NOT_RELEVANT',
+  DISMISSED = 'DISMISSED',
+  APPLIED = 'APPLIED',
+}
+
+export interface RecommendationDto {
   id: string;
-  targetType: 'OPPORTUNITY' | 'PERK';
+  userId: string;
+  targetType: RecommendationTargetType;
   targetId: string;
   targetTitle: string;
+  targetCategory?: string;
   relevanceScore: number; // 0 to 100
   assessment: EligibilityAssessment;
   reasonCodes: string[];
   rationale: string;
-  missingData?: string[];
+  missingData: string[];
   suggestedNextStep: string;
   officialSourceUrl?: string;
+  benefitHighlight?: string;
+  feedback?: RecommendationFeedback;
+  isDismissed: boolean;
+  isSaved: boolean;
+  opportunity?: OpportunityListItemDto;
+  perkProgram?: PerkListItemDto;
+  createdAt: Date | string;
+}
+
+export interface ActionRecommendation extends RecommendationDto {}
+
+export interface SubmitFeedbackInput {
+  feedback: RecommendationFeedback;
+  comments?: string;
+}
+
+export interface IntelligenceSummaryDto {
+  recommendations: RecommendationDto[];
+  totalCount: number;
+  likelyMatchesCount: number;
+  potentialIssuesCount: number;
+  needsInfoCount: number;
+  topNextSteps: string[];
+  missingProfileFields: string[];
 }
 
 // -------------------------------------------------------------
