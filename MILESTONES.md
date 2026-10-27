@@ -4,8 +4,8 @@
 **Specification:** [startup_radar_india_complete_spec_v3.md](./startup_radar_india_complete_spec_v3.md)  
 **Database:** Supabase PostgreSQL (`aws-0-ap-south-1.pooler.supabase.com:5432/postgres`)  
 **Cache / Queue:** Upstash Serverless Redis (`rediss://optimum-starfish-132990.upstash.io:6379`)  
-**Current Status:** **8 / 9 Milestones Completed (89% Finished)**  
-**Automated Tests:** **46 / 46 E2E Tests Passing (100% Green)**  
+**Current Status:** **9 / 9 Milestones Completed (100% Finished — Production Ready)**  
+**Automated Tests:** **51 / 51 E2E Tests Passing across all 9 Suites (100% Green)**  
 **Last Updated:** 27 October 2026
 
 ---
@@ -21,8 +21,8 @@
 | **5** | **Startup Perks & Credits MVP** | Official startup credits directory (Cloud, AI/API, Developer tools, SaaS discounts), eligibility criteria checklist, provider verification, Next.js `/perks` directory & detail pages. | ✅ **Completed** | `milestone5.e2e-spec.ts` (6/6 Passed) | `3df5745` |
 | **6** | **Founder Accounts, Saved Items & Alerts** | User bookmarks, deadline email notifications, private application status tracking, preference controls. | ✅ **Completed** | `milestone6.e2e-spec.ts` (6/6 Passed) | `5ba495e` |
 | **7** | **Co-Founder Matching MVP** | Founder profiles, skills sought/offered, commitment & stage preferences, mutual-consent connection requests, anti-abuse & privacy controls. | ✅ **Completed** | `milestone7.e2e-spec.ts` (6/6 Passed) | `c7d5c5c` |
-| **8** | **Startup Intelligence & Action Engine** | Deterministic profile-based opportunity/perk recommendations, explainable match rationale, missing-eligibility flags, next-step suggestions, founder feedback & dismissal controls. | ✅ **Completed** | `milestone8.e2e-spec.ts` (6/6 Passed) | Pending Commit |
-| **9** | **Production Readiness & Pilot Measurement** | Rate limiting, security audits, source freshness metrics, Docker/Cloud deployment configuration. | ⏳ **Next Up** | `milestone9.e2e-spec.ts` | Planned |
+| **8** | **Startup Intelligence & Action Engine** | Deterministic profile-based opportunity/perk recommendations, explainable match rationale, missing-eligibility flags, next-step suggestions, founder feedback & dismissal controls. | ✅ **Completed** | `milestone8.e2e-spec.ts` (6/6 Passed) | `e6dba49` |
+| **9** | **Production Readiness & Pilot Measurement** | OWASP Security headers, sliding-window rate limiting (`X-RateLimit-*`), live operational metrics endpoint, Docker compose & Dockerfile topology, production runbook. | ✅ **Completed** | `milestone9.e2e-spec.ts` (5/5 Passed) | Pending Commit |
 
 ---
 
@@ -149,13 +149,32 @@
   - Tests: `apps/api/test/milestone8.e2e-spec.ts` (6/6 passed).
   - Full Sequential Suite: **46/46 passed across Milestones 1-8 (100% Green)**.
 
+### Milestone 9 — Production Readiness, Security & Pilot Measurement
+- **Status:** Completed & Live Verified
+- **Key Deliverables:**
+  - Security Headers Middleware: Automatically sets OWASP-recommended headers on all responses (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, `Strict-Transport-Security`, `Referrer-Policy: strict-origin-when-cross-origin`).
+  - Native Sliding-Window Rate Limiting (`RateLimitGuard`):
+    - Configurable per-controller or per-handler (`@RateLimit(limit, ttlSeconds)`).
+    - Standard response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`.
+    - Returns HTTP 429 `Too Many Requests` with `Retry-After` header when thresholds are exceeded.
+  - Operational Metrics API (`MetricsService` & `MetricsController`):
+    - `GET /api/v1/metrics` — Live telemetry on source freshness rate (24h vs 7d stale), opportunity verification rate, perk programs quality, co-founder matching activity, recommendation quality score, and system resource consumption (heap memory, uptime, database ping latency).
+  - Production Deployment Topology:
+    - `infra/docker-compose.yml` for multi-container orchestration.
+    - `apps/api/Dockerfile` multi-stage build.
+    - `apps/web/Dockerfile` multi-stage build.
+    - `docs/DEPLOYMENT.md` production runbook & environment variable checklist.
+  - Tests: `apps/api/test/milestone9.e2e-spec.ts` (5/5 passed).
+  - Grand Sequential Suite: **51/51 passed across ALL 9 Milestones (100% Green)**.
+
 ---
 
 ## How to Run Tests
 From the root directory:
 ```powershell
-# Run all Milestone E2E tests in sequence
-npm.cmd --prefix apps/api run test:e2e -- --runInBand milestone1 milestone2 milestone3 milestone4 milestone5 milestone6 milestone7 milestone8
+# Run all 9 Milestone E2E tests in sequence
+npm.cmd --prefix apps/api run test:e2e -- --runInBand milestone1 milestone2 milestone3 milestone4 milestone5 milestone6 milestone7 milestone8 milestone9
 ```
+
 
 
