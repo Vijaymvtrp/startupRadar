@@ -8,6 +8,9 @@ import { StartupProfileModule } from './startup-profile/startup-profile.module';
 import { ConnectorsModule } from './connectors/connectors.module';
 import { QueueModule } from './queue/queue.module';
 import { SourcesModule } from './sources/sources.module';
+import { ChangeDetectionModule } from './change-detection/change-detection.module';
+import { DeduplicationModule } from './deduplication/deduplication.module';
+import { ReviewQueueModule } from './review-queue/review-queue.module';
 import * as path from 'path';
 
 @Module({
@@ -27,6 +30,9 @@ import * as path from 'path';
     ConnectorsModule,
     QueueModule,
     SourcesModule,
+    ChangeDetectionModule,
+    DeduplicationModule,
+    ReviewQueueModule,
   ],
 })
 export class AppModule {}

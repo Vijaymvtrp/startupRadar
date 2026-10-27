@@ -89,6 +89,37 @@ enum OpportunityCategory {
   RESEARCH_DEVELOPMENT
 }
 
+enum GovernmentLevel {
+  CENTRAL
+  STATE
+  LOCAL
+  PUBLIC_SECTOR
+  NOT_APPLICABLE
+}
+
+enum OpportunityBenefitType {
+  GRANT
+  SUBSIDY
+  LOAN
+  EQUITY_INVESTMENT
+  INCUBATION_SUPPORT
+  PROCUREMENT
+  OTHER
+}
+
+enum ReviewReason {
+  SUSPECTED_DUPLICATE
+  CONFLICTING_DATA
+  UNVERIFIED_GOV_CLAIM
+  EXTRACTION_UNCERTAINTY
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum VerificationStatus {
   PENDING
   NEEDS_REVIEW
@@ -257,6 +288,7 @@ model Source {
   config                SourceConfig?
   runs                  SourceRun[]
   checks                SourceCheck[]
+  opportunitySources    OpportunitySource[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 
@@ -318,4 +350,85 @@ model SourceCheck {
   @@index([sourceId, url])
   @@map("source_checks")
 }
+
+// -------------------------------------------------------------
+// Canonical Opportunities & Deduplication (Milestone 3)
+// -------------------------------------------------------------
+
+model Opportunity {
+  id                     String                 @id @default(uuid())
+  slug                   String                 @unique
+  title                  String
+  summary                String?
+  description            String?
+  organizer              String?
+  category               OpportunityCategory    @default(GOVERNMENT_SCHEME)
+  governmentLevel        GovernmentLevel        @default(NOT_APPLICABLE)
+  departmentName         String?
+  countryCode            String                 @default("IN")
+  stateCode              String?
+  city                   String?
+  benefitType            OpportunityBenefitType @default(GRANT)
+  benefitAmountMin       Float?
+  benefitAmountMax       Float?
+  currency               String                 @default("INR")
+  sourcePublishedAt      DateTime?
+  eventStartAt           DateTime?
+  eventEndAt             DateTime?
+  applicationOpenAt      DateTime?
+  applicationDeadline    DateTime?
+  officialApplicationUrl String?
+  eligibilitySummary     String?
+  verificationStatus     VerificationStatus     @default(PENDING)
+  publicationStatus      PublicationStatus      @default(DRAFT)
+  firstSeenAt            DateTime               @default(now())
+  lastSeenAt             DateTime               @default(now())
+  lastCheckedAt          DateTime?
+  sources                OpportunitySource[]
+  reviewItems            ReviewQueueItem[]
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  @@index([category])
+  @@index([verificationStatus])
+  @@index([publicationStatus])
+  @@index([applicationDeadline])
+  @@index([countryCode, stateCode])
+  @@map("opportunities")
+}
+
+model OpportunitySource {
+  id              String      @id @default(uuid())
+  opportunityId   String
+  opportunity     Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  sourceId        String?
+  source          Source?     @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  sourceUrl       String
+  sourceType      String      @default("PRIMARY")
+  contentHash     String?
+  isPrimarySource Boolean     @default(true)
+  firstSeenAt     DateTime    @default(now())
+  lastSeenAt      DateTime    @default(now())
+
+  @@unique([opportunityId, sourceUrl])
+  @@index([sourceUrl])
+  @@map("opportunity_sources")
+}
+
+model ReviewQueueItem {
+  id            String       @id @default(uuid())
+  opportunityId String
+  opportunity   Opportunity  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  reason        ReviewReason
+  status        ReviewStatus @default(PENDING)
+  reviewerNotes String?
+  details       Json?
+  createdAt     DateTime     @default(now())
+  resolvedAt    DateTime?
+
+  @@index([status])
+  @@index([reason])
+  @@map("review_queue_items")
+}
+
 

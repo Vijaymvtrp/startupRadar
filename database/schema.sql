@@ -361,3 +361,130 @@ DROP CONSTRAINT IF EXISTS "source_checks_sourceId_fkey",
 ADD CONSTRAINT "source_checks_sourceId_fkey" 
 FOREIGN KEY ("sourceId") REFERENCES "sources"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+-- =============================================================
+-- Milestone 3: Canonical Opportunities, Provenance & Review DDL
+-- =============================================================
+
+CREATE TYPE "GovernmentLevel" AS ENUM (
+    'CENTRAL',
+    'STATE',
+    'LOCAL',
+    'PUBLIC_SECTOR',
+    'NOT_APPLICABLE'
+);
+
+CREATE TYPE "OpportunityBenefitType" AS ENUM (
+    'GRANT',
+    'SUBSIDY',
+    'LOAN',
+    'EQUITY_INVESTMENT',
+    'INCUBATION_SUPPORT',
+    'PROCUREMENT',
+    'OTHER'
+);
+
+CREATE TYPE "ReviewReason" AS ENUM (
+    'SUSPECTED_DUPLICATE',
+    'CONFLICTING_DATA',
+    'UNVERIFIED_GOV_CLAIM',
+    'EXTRACTION_UNCERTAINTY'
+);
+
+CREATE TYPE "ReviewStatus" AS ENUM (
+    'PENDING',
+    'APPROVED',
+    'REJECTED'
+);
+
+CREATE TABLE IF NOT EXISTS "opportunities" (
+    "id" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "summary" TEXT,
+    "description" TEXT,
+    "organizer" TEXT,
+    "category" "OpportunityCategory" NOT NULL DEFAULT 'GOVERNMENT_SCHEME',
+    "governmentLevel" "GovernmentLevel" NOT NULL DEFAULT 'NOT_APPLICABLE',
+    "departmentName" TEXT,
+    "countryCode" TEXT NOT NULL DEFAULT 'IN',
+    "stateCode" TEXT,
+    "city" TEXT,
+    "benefitType" "OpportunityBenefitType" NOT NULL DEFAULT 'GRANT',
+    "benefitAmountMin" DOUBLE PRECISION,
+    "benefitAmountMax" DOUBLE PRECISION,
+    "currency" TEXT NOT NULL DEFAULT 'INR',
+    "sourcePublishedAt" TIMESTAMP(3),
+    "eventStartAt" TIMESTAMP(3),
+    "eventEndAt" TIMESTAMP(3),
+    "applicationOpenAt" TIMESTAMP(3),
+    "applicationDeadline" TIMESTAMP(3),
+    "officialApplicationUrl" TEXT,
+    "eligibilitySummary" TEXT,
+    "verificationStatus" "VerificationStatus" NOT NULL DEFAULT 'PENDING',
+    "publicationStatus" "PublicationStatus" NOT NULL DEFAULT 'DRAFT',
+    "firstSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastCheckedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "opportunities_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "opportunity_sources" (
+    "id" TEXT NOT NULL,
+    "opportunityId" TEXT NOT NULL,
+    "sourceId" TEXT,
+    "sourceUrl" TEXT NOT NULL,
+    "sourceType" TEXT NOT NULL DEFAULT 'PRIMARY',
+    "contentHash" TEXT,
+    "isPrimarySource" BOOLEAN NOT NULL DEFAULT true,
+    "firstSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "opportunity_sources_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "review_queue_items" (
+    "id" TEXT NOT NULL,
+    "opportunityId" TEXT NOT NULL,
+    "reason" "ReviewReason" NOT NULL,
+    "status" "ReviewStatus" NOT NULL DEFAULT 'PENDING',
+    "reviewerNotes" TEXT,
+    "details" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "resolvedAt" TIMESTAMP(3),
+
+    CONSTRAINT "review_queue_items_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "opportunities_slug_key" ON "opportunities"("slug");
+CREATE INDEX IF NOT EXISTS "opportunities_category_idx" ON "opportunities"("category");
+CREATE INDEX IF NOT EXISTS "opportunities_verificationStatus_idx" ON "opportunities"("verificationStatus");
+CREATE INDEX IF NOT EXISTS "opportunities_publicationStatus_idx" ON "opportunities"("publicationStatus");
+CREATE INDEX IF NOT EXISTS "opportunities_applicationDeadline_idx" ON "opportunities"("applicationDeadline");
+CREATE INDEX IF NOT EXISTS "opportunities_countryCode_stateCode_idx" ON "opportunities"("countryCode", "stateCode");
+
+CREATE UNIQUE INDEX IF NOT EXISTS "opportunity_sources_opportunityId_sourceUrl_key" 
+ON "opportunity_sources"("opportunityId", "sourceUrl");
+CREATE INDEX IF NOT EXISTS "opportunity_sources_sourceUrl_idx" ON "opportunity_sources"("sourceUrl");
+
+CREATE INDEX IF NOT EXISTS "review_queue_items_status_idx" ON "review_queue_items"("status");
+CREATE INDEX IF NOT EXISTS "review_queue_items_reason_idx" ON "review_queue_items"("reason");
+
+ALTER TABLE "opportunity_sources" 
+DROP CONSTRAINT IF EXISTS "opportunity_sources_opportunityId_fkey",
+ADD CONSTRAINT "opportunity_sources_opportunityId_fkey" 
+FOREIGN KEY ("opportunityId") REFERENCES "opportunities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "opportunity_sources" 
+DROP CONSTRAINT IF EXISTS "opportunity_sources_sourceId_fkey",
+ADD CONSTRAINT "opportunity_sources_sourceId_fkey" 
+FOREIGN KEY ("sourceId") REFERENCES "sources"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE "review_queue_items" 
+DROP CONSTRAINT IF EXISTS "review_queue_items_opportunityId_fkey",
+ADD CONSTRAINT "review_queue_items_opportunityId_fkey" 
+FOREIGN KEY ("opportunityId") REFERENCES "opportunities"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+
